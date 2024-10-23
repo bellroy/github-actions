@@ -1,0 +1,92 @@
+cabal-version:   2.4
+name:            github-actions
+version:         0.0.0.1
+synopsis:        Github Actions
+homepage:
+  https://github.com/bellroy/haskell/tree/master/lib/github/actions
+
+bug-reports:     https://github.com/bellroy/haskell/issues
+author:          Bellroy
+copyright:       Bellroy
+maintainer:      geeks@bellroy.com
+license:
+build-type:      Simple
+extra-doc-files: README.md
+
+source-repository head
+  type:     git
+  location: https://github.com/bellroy/haskell.git
+
+common deps
+  build-depends:
+    , aeson                ^>=2.2.3.0
+    , base                 ^>=4.18
+    , containers           ^>=0.6.8
+    , hedgehog             ^>=1.5
+    , hoist-error          ^>=0.3.0.0
+    , nonempty-containers  ^>=0.3.4
+    , primitive-data       ^>=0.17.0.0
+    , refined              ^>=0.8.1
+    , relude               ^>=1.2
+    , string-interpolate   ^>=0.3.3
+    , vector               ^>=0.13.0.0
+
+common opts
+  default-language:   GHC2021
+  default-extensions: NoImplicitPrelude
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wimplicit-prelude
+    -Wincomplete-record-updates -Wincomplete-uni-patterns
+    -Werror=incomplete-patterns -Wredundant-constraints
+    -Wpartial-fields -Wtabs -Wmissing-local-signatures -fhelpful-errors
+    -fprint-expanded-synonyms -fwarn-unused-do-bind
+
+library
+  import:          deps, opts
+  ghc-options:     -Wunused-packages
+
+  -- cabal-fmt: expand src/
+  exposed-modules:
+    Language.Github.Actions.Concurrency
+    Language.Github.Actions.Defaults
+    Language.Github.Actions.Job
+    Language.Github.Actions.Job.Container
+    Language.Github.Actions.Job.Environment
+    Language.Github.Actions.Job.Id
+    Language.Github.Actions.Job.Strategy
+    Language.Github.Actions.Permissions
+    Language.Github.Actions.Service
+    Language.Github.Actions.Service.Id
+    Language.Github.Actions.Shell
+    Language.Github.Actions.Step
+    Language.Github.Actions.Step.Id
+    Language.Github.Actions.Step.With
+    Language.Github.Actions.Types
+    Language.Github.Actions.Workflow
+    Language.Github.Actions.Workflow.Trigger
+
+  hs-source-dirs:  src
+
+test-suite spec
+  import:             deps, opts
+  type:               exitcode-stdio-1.0
+  ghc-options:        -threaded
+  hs-source-dirs:     test
+  main-is:            Main.hs
+  other-modules:      Language.Github.Actions.WorkflowTest
+  build-tool-depends: tasty-discover:tasty-discover ^>=5.0.0
+  build-depends:
+    , filepath           ^>=1.4.2.2
+    , github-actions
+    , hedgehog-extra     ^>=0.4.0.0
+    , pretty-show        ^>=1.10
+    , tasty              ^>=1.5
+    , tasty-discover     ^>=5.0.0
+    , tasty-extended     ^>=0.1.0
+    , tasty-golden       ^>=2.3.5
+    , tasty-golden-yaml  ^>=0.1.0
+    , tasty-hedgehog     ^>=1.4.0.0
+    , tasty-hunit        ^>=0.10.0.3
+    , yaml               ^>=0.11.11
+
+  build-tool-depends: tasty-discover:tasty-discover ^>=5.0.0
