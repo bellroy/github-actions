@@ -15,13 +15,13 @@ import Hedgehog.Range qualified as Range
 import Refined (Refined)
 import Refined qualified
 import Relude
-import Text.MatchesPosixRegex (MatchesPosixRegex)
+import Text.MatchesRegex (MatchesRegex)
 
 type EnvVariable =
   Refined
     ( Refined.And
         Refined.NonEmpty
-        (MatchesPosixRegex "^[A-Z0-9]{1}$|^[A-Z0-9]+[A-Z0-9_-]*[A-Z0-9]+$")
+        (MatchesRegex "^[A-Z0-9]{1}$|^[A-Z0-9]+[A-Z0-9_-]*[A-Z0-9]+$")
     )
     Text
 
@@ -29,7 +29,7 @@ type ObjectKey =
   Refined
     ( Refined.And
         Refined.NonEmpty
-        (MatchesPosixRegex "^[a-zA-Z0-9]{1}$|^[a-zA-Z0-9]+[a-zA-Z0-9_-]*[a-zA-Z0-9]+$")
+        (MatchesRegex "^[a-zA-Z0-9]{1}$|^[a-zA-Z0-9]+[a-zA-Z0-9_-]*[a-zA-Z0-9]+$")
     )
     Text
 

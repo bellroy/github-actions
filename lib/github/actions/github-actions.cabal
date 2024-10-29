@@ -25,7 +25,7 @@ common deps
     , hedgehog             ^>=1.5
     , hoist-error          ^>=0.3.0.0
     , nonempty-containers  ^>=0.3.4
-    , primitive-data       ^>=0.17.0.0
+    , primitive-data       ^>=0.18.0
     , refined              ^>=0.8.1
     , relude               ^>=1.2
     , string-interpolate   ^>=0.3.3
