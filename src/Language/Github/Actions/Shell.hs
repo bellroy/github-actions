@@ -15,18 +15,16 @@ import Data.Aeson qualified as Aeson
 import Data.String.Interpolate (i)
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
-import Refined (refineEither, unrefine)
+import Hedgehog.Range qualified as Range
 import Relude hiding (group)
-import Text.NonEmpty (NonEmptyText)
-import Text.NonEmpty qualified as NonEmptyText
 
 data Shell
-  = Bash (Maybe NonEmptyText)
-  | LinuxMacOSOnlySh (Maybe NonEmptyText)
-  | Python (Maybe NonEmptyText)
-  | WindowsOnlyCmd (Maybe NonEmptyText)
-  | WindowsOnlyPowershell (Maybe NonEmptyText)
-  | WindowsOnlyPwsh (Maybe NonEmptyText)
+  = Bash (Maybe Text)
+  | LinuxMacOSOnlySh (Maybe Text)
+  | Python (Maybe Text)
+  | WindowsOnlyCmd (Maybe Text)
+  | WindowsOnlyPowershell (Maybe Text)
+  | WindowsOnlyPwsh (Maybe Text)
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON Shell where
@@ -39,40 +37,38 @@ instance ToJSON Shell where
 
 renderShell :: Shell -> Text
 renderShell = \case
-  Bash args -> [i|bash#{maybe "" ((" " <>) . unrefine) args}|]
-  LinuxMacOSOnlySh args -> [i|sh#{maybe "" ((" " <>) . unrefine) args}|]
-  Python args -> [i|python#{maybe "" ((" " <>) . unrefine) args}|]
-  WindowsOnlyCmd args -> [i|cmd#{maybe "" ((" " <>) . unrefine) args}|]
-  WindowsOnlyPowershell args -> [i|powershell#{maybe "" ((" " <>) . unrefine) args}|]
-  WindowsOnlyPwsh args -> [i|pwsh#{maybe "" ((" " <>) . unrefine) args}|]
+  Bash args -> [i|bash#{maybe "" ((" " <>)) args}|]
+  LinuxMacOSOnlySh args -> [i|sh#{maybe "" ((" " <>)) args}|]
+  Python args -> [i|python#{maybe "" ((" " <>)) args}|]
+  WindowsOnlyCmd args -> [i|cmd#{maybe "" ((" " <>)) args}|]
+  WindowsOnlyPowershell args -> [i|powershell#{maybe "" ((" " <>)) args}|]
+  WindowsOnlyPwsh args -> [i|pwsh#{maybe "" ((" " <>)) args}|]
 
 parseShell :: Text -> Either String Shell
 parseShell t =
   case tokens of
-    "bash" : args -> Bash <$> eitherArgs args
-    "cmd" : args -> WindowsOnlyCmd <$> eitherArgs args
-    "powershell" : args -> WindowsOnlyPowershell <$> eitherArgs args
-    "pwsh" : args -> WindowsOnlyPwsh <$> eitherArgs args
-    "python" : args -> Python <$> eitherArgs args
-    "sh" : args -> LinuxMacOSOnlySh <$> eitherArgs args
+    "bash" : args -> Right . Bash $ maybeArgs args
+    "cmd" : args -> Right . WindowsOnlyCmd $ maybeArgs args
+    "powershell" : args -> Right . WindowsOnlyPowershell $ maybeArgs args
+    "pwsh" : args -> Right . WindowsOnlyPwsh $ maybeArgs args
+    "python" : args -> Right . Python $ maybeArgs args
+    "sh" : args -> Right . LinuxMacOSOnlySh $ maybeArgs args
     _ -> Left [i|Unknown shell: #{t}|]
   where
     tokens = words t
-    eitherArgs = \case
-      [] -> Right Nothing
-      args ->
-        Just
-          <$> first
-            (const "Empty arguments given for shell")
-            (refineEither (unwords args))
+    maybeArgs = \case
+      [] -> Nothing
+      args -> Just $ unwords args
 
 gen :: (MonadGen m) => m Shell
 gen =
   Gen.choice
-    [ Bash <$> Gen.maybe (NonEmptyText.gen Gen.alphaNum),
-      LinuxMacOSOnlySh <$> Gen.maybe (NonEmptyText.gen Gen.alphaNum),
-      Python <$> Gen.maybe (NonEmptyText.gen Gen.alphaNum),
-      WindowsOnlyCmd <$> Gen.maybe (NonEmptyText.gen Gen.alphaNum),
-      WindowsOnlyPowershell <$> Gen.maybe (NonEmptyText.gen Gen.alphaNum),
-      WindowsOnlyPwsh <$> Gen.maybe (NonEmptyText.gen Gen.alphaNum)
+    [ Bash <$> Gen.maybe genText,
+      LinuxMacOSOnlySh <$> Gen.maybe genText,
+      Python <$> Gen.maybe genText,
+      WindowsOnlyCmd <$> Gen.maybe genText,
+      WindowsOnlyPowershell <$> Gen.maybe genText,
+      WindowsOnlyPwsh <$> Gen.maybe genText
     ]
+  where
+    genText = Gen.text (Range.linear 1 5) Gen.alphaNum

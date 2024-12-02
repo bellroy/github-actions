@@ -5,6 +5,7 @@
 module Language.Github.Actions.Step
   ( Step (..),
     gen,
+    new,
   )
 where
 
@@ -19,23 +20,20 @@ import Language.Github.Actions.Step.Id (StepId)
 import Language.Github.Actions.Step.Id qualified as StepId
 import Language.Github.Actions.Step.With (StepWith)
 import Language.Github.Actions.Step.With qualified as StepWith
-import Language.Github.Actions.Types (ObjectKey, genObjectKeyMap)
 import Relude hiding (id)
-import Text.NonEmpty (NonEmptyText)
-import Text.NonEmpty qualified as NonEmptyText
 
 data Step = Step
   { continueOnError :: Bool,
-    env :: Map ObjectKey Text,
+    env :: Map Text Text,
     id :: Maybe StepId,
-    name :: Maybe NonEmptyText,
-    run :: Maybe NonEmptyText,
-    runIf :: Maybe NonEmptyText,
+    name :: Maybe Text,
+    run :: Maybe Text,
+    runIf :: Maybe Text,
     shell :: Maybe Shell,
     timeoutMinutes :: Maybe Int,
-    uses :: Maybe NonEmptyText,
+    uses :: Maybe Text,
     with :: Maybe StepWith,
-    workingDirectory :: Maybe NonEmptyText
+    workingDirectory :: Maybe Text
   }
   deriving stock (Eq, Generic, Ord, Show)
 
@@ -74,17 +72,36 @@ instance ToJSON Step where
       monoidToMaybe :: (Eq a, Monoid a) => a -> Maybe a
       monoidToMaybe a = if a == mempty then Nothing else Just a
 
-gen :: (MonadGen m, MonadFail m) => m Step
+gen :: (MonadGen m) => m Step
 gen = do
   continueOnError <- Gen.bool
-  env <- genObjectKeyMap (Gen.text (Range.linear 3 20) Gen.alphaNum)
+  env <- genTextMap
   id <- Gen.maybe StepId.gen
-  name <- Gen.maybe $ NonEmptyText.gen Gen.alphaNum
-  run <- Gen.maybe $ NonEmptyText.gen Gen.alphaNum
-  runIf <- Gen.maybe $ NonEmptyText.gen Gen.alphaNum
+  name <- Gen.maybe genText
+  run <- Gen.maybe genText
+  runIf <- Gen.maybe genText
   shell <- Gen.maybe Shell.gen
   timeoutMinutes <- Gen.maybe $ Gen.int (Range.linear 1 120)
-  uses <- Gen.maybe $ NonEmptyText.gen Gen.alphaNum
+  uses <- Gen.maybe genText
   with <- Gen.maybe StepWith.gen
-  workingDirectory <- Gen.maybe $ NonEmptyText.gen Gen.alphaNum
+  workingDirectory <- Gen.maybe genText
   pure Step {..}
+  where
+    genText = Gen.text (Range.linear 1 5) Gen.alphaNum
+    genTextMap = Gen.map (Range.linear 3 20) $ liftA2 (,) genText genText
+
+new :: Step
+new =
+  Step
+    { continueOnError = False,
+      env = mempty,
+      id = Nothing,
+      name = Nothing,
+      run = Nothing,
+      runIf = Nothing,
+      shell = Nothing,
+      timeoutMinutes = Nothing,
+      uses = Nothing,
+      with = Nothing,
+      workingDirectory = Nothing
+    }

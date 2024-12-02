@@ -7,11 +7,26 @@
 module Language.Github.Actions.Workflow.Trigger
   ( BranchProtectionRuleActivityType (..),
     CheckRunActivityType (..),
+    DiscussionActivityType (..),
+    DiscussionCommentActivityType (..),
+    IssueCommentActivityType (..),
+    IssuesActivityType (..),
+    LabelActivityType (..),
+    MilestoneActivityType (..),
+    PullRequestActivityType (..),
+    PullRequestReviewActivityType (..),
+    PullRequestReviewCommentActivityType (..),
+    PullRequestTargetActivityType (..),
+    PullRequestTargetTriggerAttributes (..),
+    PullRequestTriggerAttributes (..),
+    PushTriggerAttributes (..),
+    RegistryPackageActivityType (..),
+    ReleaseActivityType (..),
+    WorkflowCallAttributes (..),
+    WorkflowDispatchAttributes (..),
+    WorkflowRunActivityType (..),
+    WorkflowRunTriggerAttributes (..),
     WorkflowTrigger (..),
-    parseBranchProtectionRuleActivityType,
-    parseCheckRunActivityType,
-    renderBranchProtectionRuleActivityType,
-    renderCheckRunActivityType,
     gen,
   )
 where
@@ -28,32 +43,7 @@ import Data.Vector qualified as Vector
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Language.Github.Actions.Types (ObjectKey, genObjectKeyMap)
 import Relude
-import Text.NonEmpty (NonEmptyText)
-import Text.NonEmpty qualified as NonEmptyText
-
-data RoundTrippableNonEmpty a
-  = RoundTrippableNonEmptyFromString a
-  | RoundTrippableNonEmptyFromList (NonEmpty a)
-  deriving stock (Eq, Generic, Ord, Show)
-
-instance Functor RoundTrippableNonEmpty where
-  fmap f = \case
-    RoundTrippableNonEmptyFromString a -> RoundTrippableNonEmptyFromString $ f a
-    RoundTrippableNonEmptyFromList ne -> RoundTrippableNonEmptyFromList $ f <$> ne
-
-instance (FromJSON a) => FromJSON (RoundTrippableNonEmpty a) where
-  parseJSON (Aeson.String s) =
-    RoundTrippableNonEmptyFromString <$> Aeson.parseJSON (Aeson.String s)
-  parseJSON (Aeson.Array a) =
-    RoundTrippableNonEmptyFromList <$> Aeson.parseJSON (Aeson.Array a)
-  parseJSON _ = fail "Expected a string or an array"
-
-instance (ToJSON a) => ToJSON (RoundTrippableNonEmpty a) where
-  toJSON = \case
-    RoundTrippableNonEmptyFromString a -> Aeson.toJSON a
-    RoundTrippableNonEmptyFromList ne -> Aeson.toJSON ne
 
 data BranchProtectionRuleActivityType
   = BranchProtectionRuleCreated
@@ -369,11 +359,11 @@ parsePullRequestActivityType t =
     inverseMap renderPullRequestActivityType t
 
 data PullRequestTriggerAttributes = PullRequestTriggerAttributes
-  { pullRequestActivityTypes :: Maybe (RoundTrippableNonEmpty PullRequestActivityType),
-    pullRequestBranches :: Maybe (NonEmpty NonEmptyText),
-    pullRequestBranchesIgnore :: Maybe (NonEmpty NonEmptyText),
-    pullRequestPaths :: Maybe (NonEmpty NonEmptyText),
-    pullRequestPathsIgnore :: Maybe (NonEmpty NonEmptyText)
+  { pullRequestActivityTypes :: Maybe (NonEmpty PullRequestActivityType),
+    pullRequestBranches :: Maybe (NonEmpty Text),
+    pullRequestBranchesIgnore :: Maybe (NonEmpty Text),
+    pullRequestPaths :: Maybe (NonEmpty Text),
+    pullRequestPathsIgnore :: Maybe (NonEmpty Text)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
@@ -501,11 +491,11 @@ parsePullRequestTargetActivityType t =
     inverseMap renderPullRequestTargetActivityType t
 
 data PullRequestTargetTriggerAttributes = PullRequestTargetTriggerAttributes
-  { pullRequestTargetActivityTypes :: Maybe (RoundTrippableNonEmpty PullRequestTargetActivityType),
-    pullRequestTargetBranches :: Maybe (NonEmpty NonEmptyText),
-    pullRequestTargetBranchesIgnore :: Maybe (NonEmpty NonEmptyText),
-    pullRequestTargetPaths :: Maybe (NonEmpty NonEmptyText),
-    pullRequestTargetPathsIgnore :: Maybe (NonEmpty NonEmptyText)
+  { pullRequestTargetActivityTypes :: Maybe (NonEmpty PullRequestTargetActivityType),
+    pullRequestTargetBranches :: Maybe (NonEmpty Text),
+    pullRequestTargetBranchesIgnore :: Maybe (NonEmpty Text),
+    pullRequestTargetPaths :: Maybe (NonEmpty Text),
+    pullRequestTargetPathsIgnore :: Maybe (NonEmpty Text)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
@@ -530,11 +520,11 @@ instance ToJSON PullRequestTargetTriggerAttributes where
         ]
 
 data PushTriggerAttributes = PushTriggerAttributes
-  { pushBranches :: Maybe (NonEmpty NonEmptyText),
-    pushBranchesIgnore :: Maybe (NonEmpty NonEmptyText),
-    pushPaths :: Maybe (NonEmpty NonEmptyText),
-    pushPathsIgnore :: Maybe (NonEmpty NonEmptyText),
-    pushTags :: Maybe (NonEmpty NonEmptyText)
+  { pushBranches :: Maybe (NonEmpty Text),
+    pushBranchesIgnore :: Maybe (NonEmpty Text),
+    pushPaths :: Maybe (NonEmpty Text),
+    pushPathsIgnore :: Maybe (NonEmpty Text),
+    pushTags :: Maybe (NonEmpty Text)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
@@ -638,7 +628,7 @@ parseWorkflowCallInputType t =
     inverseMap renderWorkflowCallInputType t
 
 data WorkflowCallInput = WorkflowCallInput
-  { workflowCallInputDescription :: Maybe NonEmptyText,
+  { workflowCallInputDescription :: Maybe Text,
     workflowCallInputDefault :: Maybe Aeson.Value,
     workflowCallInputRequired :: Maybe Bool,
     workflowCallInputType :: WorkflowCallInputType
@@ -664,8 +654,8 @@ instance ToJSON WorkflowCallInput where
         ]
 
 data WorkflowCallOutput = WorkflowCallOutput
-  { workflowCallOutputDescription :: Maybe NonEmptyText,
-    workflowCallOutputValue :: NonEmptyText
+  { workflowCallOutputDescription :: Maybe Text,
+    workflowCallOutputValue :: Text
   }
   deriving stock (Eq, Generic, Ord, Show)
 
@@ -684,7 +674,7 @@ instance ToJSON WorkflowCallOutput where
         ]
 
 data WorkflowCallSecret = WorkflowCallSecret
-  { workflowCallSecretDescription :: Maybe NonEmptyText,
+  { workflowCallSecretDescription :: Maybe Text,
     workflowCallSecretRequired :: Maybe Bool
   }
   deriving stock (Eq, Generic, Ord, Show)
@@ -704,9 +694,9 @@ instance ToJSON WorkflowCallSecret where
         ]
 
 data WorkflowCallAttributes = WorkflowCallAttributes
-  { workflowCallInputs :: Maybe (Map ObjectKey WorkflowCallInput),
-    workflowCallOutputs :: Maybe (Map ObjectKey WorkflowCallOutput),
-    workflowCallSecrets :: Maybe (Map ObjectKey WorkflowCallSecret)
+  { workflowCallInputs :: Maybe (Map Text WorkflowCallInput),
+    workflowCallOutputs :: Maybe (Map Text WorkflowCallOutput),
+    workflowCallSecrets :: Maybe (Map Text WorkflowCallSecret)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
@@ -728,7 +718,7 @@ instance ToJSON WorkflowCallAttributes where
 
 data WorkflowDispatchInputType
   = WorkflowDispatchInputTypeBoolean
-  | WorkflowDispatchInputTypeChoice (NonEmpty NonEmptyText)
+  | WorkflowDispatchInputTypeChoice (NonEmpty Text)
   | WorkflowDispatchInputTypeEnvironment
   | WorkflowDispatchInputTypeNumber
   | WorkflowDispatchInputTypeString
@@ -749,7 +739,7 @@ instance FromJSON WorkflowDispatchInputType where
       _ -> fail [i|Unknown WorkflowDispatchInputType: #{t}|]
 
 data WorkflowDispatchInput = WorkflowDispatchInput
-  { workflowDispatchInputDescription :: Maybe NonEmptyText,
+  { workflowDispatchInputDescription :: Maybe Text,
     workflowDispatchInputDefault :: Maybe Aeson.Value,
     workflowDispatchInputRequired :: Maybe Bool,
     workflowDispatchInputType :: Maybe WorkflowDispatchInputType
@@ -800,7 +790,7 @@ instance ToJSON WorkflowDispatchInput where
         ]
 
 newtype WorkflowDispatchAttributes = WorkflowDispatchAttributes
-  { workflowDispatchInputs :: Maybe (Map ObjectKey WorkflowDispatchInput)
+  { workflowDispatchInputs :: Maybe (Map Text WorkflowDispatchInput)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
@@ -841,10 +831,10 @@ parseWorkflowRunActivityType t =
     inverseMap renderWorkflowRunActivityType t
 
 data WorkflowRunTriggerAttributes = WorkflowRunTriggerAttributes
-  { workflowRunActivityTypes :: RoundTrippableNonEmpty WorkflowRunActivityType,
-    workflowRunWorkflows :: Maybe (NonEmpty NonEmptyText),
-    workflowRunBranches :: Maybe (NonEmpty NonEmptyText),
-    workflowRunBranchesIgnore :: Maybe (NonEmpty NonEmptyText)
+  { workflowRunActivityTypes :: NonEmpty WorkflowRunActivityType,
+    workflowRunWorkflows :: Maybe (NonEmpty Text),
+    workflowRunBranches :: Maybe (NonEmpty Text),
+    workflowRunBranchesIgnore :: Maybe (NonEmpty Text)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
@@ -867,33 +857,33 @@ instance ToJSON WorkflowRunTriggerAttributes where
         ]
 
 data WorkflowTrigger
-  = BranchProtectionRuleTrigger (RoundTrippableNonEmpty BranchProtectionRuleActivityType)
-  | CheckRunTrigger (RoundTrippableNonEmpty CheckRunActivityType)
+  = BranchProtectionRuleTrigger (NonEmpty BranchProtectionRuleActivityType)
+  | CheckRunTrigger (NonEmpty CheckRunActivityType)
   | CheckSuiteCompletedTrigger
   | CreateTrigger
   | DeleteTrigger
   | DeploymentTrigger
   | DeploymentStatusTrigger
-  | DiscussionTrigger (RoundTrippableNonEmpty DiscussionActivityType)
-  | DiscussionCommentTrigger (RoundTrippableNonEmpty DiscussionCommentActivityType)
+  | DiscussionTrigger (NonEmpty DiscussionActivityType)
+  | DiscussionCommentTrigger (NonEmpty DiscussionCommentActivityType)
   | ForkTrigger
   | GollumTrigger
-  | IssueCommentTrigger (RoundTrippableNonEmpty IssueCommentActivityType)
-  | IssuesTrigger (RoundTrippableNonEmpty IssuesActivityType)
-  | LabelTrigger (RoundTrippableNonEmpty LabelActivityType)
+  | IssueCommentTrigger (NonEmpty IssueCommentActivityType)
+  | IssuesTrigger (NonEmpty IssuesActivityType)
+  | LabelTrigger (NonEmpty LabelActivityType)
   | MergeGroupChecksRequestedTrigger
-  | MilestoneTrigger (RoundTrippableNonEmpty MilestoneActivityType)
+  | MilestoneTrigger (NonEmpty MilestoneActivityType)
   | PageBuildTrigger
   | PublicTrigger
   | PullRequestTrigger PullRequestTriggerAttributes
-  | PullRequestReviewTrigger (RoundTrippableNonEmpty PullRequestReviewActivityType)
-  | PullRequestReviewCommentTrigger (RoundTrippableNonEmpty PullRequestReviewCommentActivityType)
+  | PullRequestReviewTrigger (NonEmpty PullRequestReviewActivityType)
+  | PullRequestReviewCommentTrigger (NonEmpty PullRequestReviewCommentActivityType)
   | PullRequestTargetTrigger PullRequestTargetTriggerAttributes
   | PushTrigger PushTriggerAttributes
-  | RegistryPackageTrigger (RoundTrippableNonEmpty RegistryPackageActivityType)
-  | ReleaseTrigger (RoundTrippableNonEmpty ReleaseActivityType)
-  | RepositoryDispatchTrigger (RoundTrippableNonEmpty NonEmptyText)
-  | ScheduleTrigger (NonEmpty NonEmptyText)
+  | RegistryPackageTrigger (NonEmpty RegistryPackageActivityType)
+  | ReleaseTrigger (NonEmpty ReleaseActivityType)
+  | RepositoryDispatchTrigger (NonEmpty Text)
+  | ScheduleTrigger (NonEmpty Text)
   | StatusTrigger
   | WatchStartedTrigger
   | WorkflowCallTrigger WorkflowCallAttributes
@@ -906,7 +896,7 @@ instance FromJSON WorkflowTrigger where
     maybeBranchProtectionRuleActivityTypes <-
       maybeActivityTypesInNestedObject o "branch_protection_rule"
     maybeCheckRunActivityTypes <- maybeActivityTypesInNestedObject o "check_run"
-    maybeCheckSuiteActivityTypes :: Maybe (RoundTrippableNonEmpty Text) <-
+    maybeCheckSuiteActivityTypes :: Maybe (NonEmpty Text) <-
       maybeActivityTypesInNestedObject o "check_suite"
     maybeCreate :: Maybe Aeson.Value <- o .:? "create"
     maybeDelete :: Maybe Aeson.Value <- o .:? "delete"
@@ -922,7 +912,7 @@ instance FromJSON WorkflowTrigger where
       maybeActivityTypesInNestedObject o "issue_comment"
     maybeIssuesActivityTypes <- maybeActivityTypesInNestedObject o "issues"
     maybeLabelActivityTypes <- maybeActivityTypesInNestedObject o "label"
-    maybeMergeGroupChecksRequestedActivityTypes :: Maybe (RoundTrippableNonEmpty Text) <-
+    maybeMergeGroupChecksRequestedActivityTypes :: Maybe (NonEmpty Text) <-
       maybeActivityTypesInNestedObject o "merge_group"
     maybeMilestoneActivityTypes <- maybeActivityTypesInNestedObject o "milestone"
     maybePageBuild :: Maybe Aeson.Value <- o .:? "page_build"
@@ -936,11 +926,11 @@ instance FromJSON WorkflowTrigger where
     maybePushTriggerAttributes <- o .:? "push"
     maybeRegistryPackageActivityTypes <- maybeActivityTypesInNestedObject o "registry_package"
     maybeReleaseActivityTypes <- maybeActivityTypesInNestedObject o "release"
-    maybeRepositoryDispatchActivityTypes :: Maybe (RoundTrippableNonEmpty NonEmptyText) <-
+    maybeRepositoryDispatchActivityTypes :: Maybe (NonEmpty Text) <-
       maybeActivityTypesInNestedObject o "repository_dispatch"
     maybeScheduleCrons <- maybeScheduleCronsParser o
     maybeStatus :: Maybe Aeson.Value <- o .:? "status"
-    maybeWatchStartedActivityTypes :: Maybe (RoundTrippableNonEmpty Text) <-
+    maybeWatchStartedActivityTypes :: Maybe (NonEmpty Text) <-
       maybeActivityTypesInNestedObject o "watch"
     maybeWorkflowCall <- o .:? "workflow_call"
     maybeWorkflowDispatch <- o .:? "workflow_dispatch"
@@ -951,11 +941,7 @@ instance FromJSON WorkflowTrigger where
         <|> (Right . CheckRunTrigger <$> maybeCheckRunActivityTypes)
         <|> ( Right CheckSuiteCompletedTrigger
                 <$ guard
-                  ( maybe
-                      False
-                      (roundTrippableNonEmptyContainsOnly "completed")
-                      maybeCheckSuiteActivityTypes
-                  )
+                  (maybeCheckSuiteActivityTypes == Just ("completed" :| []))
             )
         <|> (Right CreateTrigger <$ guard (isJust maybeCreate))
         <|> (Right DeleteTrigger <$ guard (isJust maybeDelete))
@@ -970,11 +956,7 @@ instance FromJSON WorkflowTrigger where
         <|> (Right . LabelTrigger <$> maybeLabelActivityTypes)
         <|> ( Right MergeGroupChecksRequestedTrigger
                 <$ guard
-                  ( maybe
-                      False
-                      (roundTrippableNonEmptyContainsOnly "checks_requested")
-                      maybeMergeGroupChecksRequestedActivityTypes
-                  )
+                  (maybeMergeGroupChecksRequestedActivityTypes == Just ("checks_requested" :| []))
             )
         <|> (Right . MilestoneTrigger <$> maybeMilestoneActivityTypes)
         <|> (Right PageBuildTrigger <$ guard (isJust maybePageBuild))
@@ -991,11 +973,7 @@ instance FromJSON WorkflowTrigger where
         <|> (Right StatusTrigger <$ guard (isJust maybeStatus))
         <|> ( Right WatchStartedTrigger
                 <$ guard
-                  ( maybe
-                      False
-                      (roundTrippableNonEmptyContainsOnly "started")
-                      maybeWatchStartedActivityTypes
-                  )
+                  (maybeWatchStartedActivityTypes == Just ("started" :| []))
             )
         <|> (Right . WorkflowCallTrigger <$> maybeWorkflowCall)
         <|> (Right . WorkflowDispatchTrigger <$> maybeWorkflowDispatch)
@@ -1005,7 +983,7 @@ instance FromJSON WorkflowTrigger where
         (FromJSON a) =>
         Aeson.Object ->
         Aeson.Key ->
-        Aeson.Parser (Maybe (RoundTrippableNonEmpty a))
+        Aeson.Parser (Maybe (NonEmpty a))
       maybeActivityTypesInNestedObject o attributeName =
         o
           .:? attributeName
@@ -1013,7 +991,7 @@ instance FromJSON WorkflowTrigger where
             (pure Nothing)
             (Aeson.withObject "ActivityTypes" (.: "types"))
 
-      maybeScheduleCronsParser :: Aeson.Object -> Aeson.Parser (Maybe (NonEmpty NonEmptyText))
+      maybeScheduleCronsParser :: Aeson.Object -> Aeson.Parser (Maybe (NonEmpty Text))
       maybeScheduleCronsParser o =
         o
           .:? "schedule"
@@ -1023,10 +1001,6 @@ instance FromJSON WorkflowTrigger where
                 fmap nonEmpty . for (Vector.toList a) $
                   Aeson.withObject "Cron" (.: "cron")
             )
-
-      roundTrippableNonEmptyContainsOnly :: (Eq a) => a -> RoundTrippableNonEmpty a -> Bool
-      roundTrippableNonEmptyContainsOnly a (RoundTrippableNonEmptyFromList ne) = ne == a :| []
-      roundTrippableNonEmptyContainsOnly a (RoundTrippableNonEmptyFromString a1) = a == a1
 
 instance ToJSONKey WorkflowTrigger where
   toJSONKey =
@@ -1132,36 +1106,36 @@ instance ToJSON WorkflowTrigger where
       WorkflowRunTrigger attrs ->
         Aeson.toJSON attrs
 
-gen :: (MonadGen m, MonadFail m) => m WorkflowTrigger
+gen :: (MonadGen m) => m WorkflowTrigger
 gen =
   Gen.choice
-    [ BranchProtectionRuleTrigger <$> genRoundTrippableNonEmpty Gen.enumBounded,
-      CheckRunTrigger <$> genRoundTrippableNonEmpty Gen.enumBounded,
+    [ BranchProtectionRuleTrigger <$> Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded,
+      CheckRunTrigger <$> Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded,
       pure CheckSuiteCompletedTrigger,
       pure CreateTrigger,
       pure DeleteTrigger,
       pure DeploymentTrigger,
       pure DeploymentStatusTrigger,
-      DiscussionTrigger <$> genRoundTrippableNonEmpty Gen.enumBounded,
-      DiscussionCommentTrigger <$> genRoundTrippableNonEmpty Gen.enumBounded,
+      DiscussionTrigger <$> Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded,
+      DiscussionCommentTrigger <$> Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded,
       pure ForkTrigger,
       pure GollumTrigger,
-      IssueCommentTrigger <$> genRoundTrippableNonEmpty Gen.enumBounded,
-      IssuesTrigger <$> genRoundTrippableNonEmpty Gen.enumBounded,
-      LabelTrigger <$> genRoundTrippableNonEmpty Gen.enumBounded,
+      IssueCommentTrigger <$> Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded,
+      IssuesTrigger <$> Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded,
+      LabelTrigger <$> Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded,
       pure MergeGroupChecksRequestedTrigger,
-      MilestoneTrigger <$> genRoundTrippableNonEmpty Gen.enumBounded,
+      MilestoneTrigger <$> Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded,
       pure PageBuildTrigger,
       pure PublicTrigger,
       PullRequestTrigger <$> genPullRequestTriggerAttributes,
-      PullRequestReviewTrigger <$> genRoundTrippableNonEmpty Gen.enumBounded,
-      PullRequestReviewCommentTrigger <$> genRoundTrippableNonEmpty Gen.enumBounded,
+      PullRequestReviewTrigger <$> Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded,
+      PullRequestReviewCommentTrigger <$> Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded,
       PullRequestTargetTrigger <$> genPullRequestTargetAttributes,
       PushTrigger <$> genPushTriggerAttributes,
-      RegistryPackageTrigger <$> genRoundTrippableNonEmpty Gen.enumBounded,
-      ReleaseTrigger <$> genRoundTrippableNonEmpty Gen.enumBounded,
-      RepositoryDispatchTrigger <$> genRoundTrippableNonEmpty (NonEmptyText.gen Gen.alphaNum),
-      ScheduleTrigger <$> Gen.nonEmpty (Range.linear 1 5) (NonEmptyText.gen Gen.alphaNum),
+      RegistryPackageTrigger <$> Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded,
+      ReleaseTrigger <$> Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded,
+      RepositoryDispatchTrigger <$> Gen.nonEmpty (Range.linear 1 3) genText,
+      ScheduleTrigger <$> Gen.nonEmpty (Range.linear 1 5) genText,
       pure StatusTrigger,
       pure WatchStartedTrigger,
       WorkflowCallTrigger <$> genWorkflowCallAttributes,
@@ -1169,73 +1143,66 @@ gen =
       WorkflowRunTrigger <$> genWorkflowRunTriggerAttributes
     ]
 
+genText :: (MonadGen m) => m Text
+genText = Gen.text (Range.linear 1 5) Gen.alphaNum
+
+genMap :: (MonadGen m) => m a -> m (Map Text a)
+genMap ga = Gen.map (Range.linear 1 5) $ liftA2 (,) genText ga
+
 genPullRequestTargetAttributes :: (MonadGen m) => m PullRequestTargetTriggerAttributes
 genPullRequestTargetAttributes = do
   pullRequestTargetActivityTypes <-
     Gen.maybe $
-      genRoundTrippableNonEmpty Gen.enumBounded
+      Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded
   pullRequestTargetBranches <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pullRequestTargetBranchesIgnore <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pullRequestTargetPaths <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pullRequestTargetPathsIgnore <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pure PullRequestTargetTriggerAttributes {..}
 
 genPullRequestTriggerAttributes :: (MonadGen m) => m PullRequestTriggerAttributes
 genPullRequestTriggerAttributes = do
   pullRequestActivityTypes <-
     Gen.maybe $
-      genRoundTrippableNonEmpty Gen.enumBounded
+      Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded
   pullRequestBranches <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pullRequestBranchesIgnore <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pullRequestPaths <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pullRequestPathsIgnore <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pure PullRequestTriggerAttributes {..}
 
 genPushTriggerAttributes :: (MonadGen m) => m PushTriggerAttributes
 genPushTriggerAttributes = do
   pushBranches <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pushBranchesIgnore <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pushPaths <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pushPathsIgnore <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pushTags <-
-    Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $
-      NonEmptyText.gen Gen.alphaNum
+    Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pure PushTriggerAttributes {..}
 
-genWorkflowCallAttributes :: (MonadGen m, MonadFail m) => m WorkflowCallAttributes
+genWorkflowCallAttributes :: (MonadGen m) => m WorkflowCallAttributes
 genWorkflowCallAttributes = do
-  workflowCallInputs <- Gen.maybe $ genObjectKeyMap genWorkflowCallInput
-  workflowCallOutputs <- Gen.maybe $ genObjectKeyMap genWorkflowCallOutput
-  workflowCallSecrets <- Gen.maybe $ genObjectKeyMap genWorkflowCallSecret
+  workflowCallInputs <- Gen.maybe $ genMap genWorkflowCallInput
+  workflowCallOutputs <- Gen.maybe $ genMap genWorkflowCallOutput
+  workflowCallSecrets <- Gen.maybe $ genMap genWorkflowCallSecret
   pure WorkflowCallAttributes {..}
 
 genWorkflowCallInput :: (MonadGen m) => m WorkflowCallInput
 genWorkflowCallInput = do
-  workflowCallInputDescription <- Gen.maybe $ NonEmptyText.gen Gen.alphaNum
+  workflowCallInputDescription <- Gen.maybe genText
   workflowCallInputDefault <-
     Gen.maybe $
       Aeson.String
@@ -1246,24 +1213,24 @@ genWorkflowCallInput = do
 
 genWorkflowCallOutput :: (MonadGen m) => m WorkflowCallOutput
 genWorkflowCallOutput = do
-  workflowCallOutputDescription <- Gen.maybe $ NonEmptyText.gen Gen.alphaNum
-  workflowCallOutputValue <- NonEmptyText.gen Gen.alphaNum
+  workflowCallOutputDescription <- Gen.maybe genText
+  workflowCallOutputValue <- genText
   pure WorkflowCallOutput {..}
 
 genWorkflowCallSecret :: (MonadGen m) => m WorkflowCallSecret
 genWorkflowCallSecret = do
-  workflowCallSecretDescription <- Gen.maybe $ NonEmptyText.gen Gen.alphaNum
+  workflowCallSecretDescription <- Gen.maybe genText
   workflowCallSecretRequired <- Gen.maybe Gen.bool
   pure WorkflowCallSecret {..}
 
-genWorkflowDispatchAttributes :: (MonadGen m, MonadFail m) => m WorkflowDispatchAttributes
+genWorkflowDispatchAttributes :: (MonadGen m) => m WorkflowDispatchAttributes
 genWorkflowDispatchAttributes = do
-  workflowDispatchInputs <- Gen.maybe $ genObjectKeyMap genWorkflowDispatchInput
+  workflowDispatchInputs <- Gen.maybe $ genMap genWorkflowDispatchInput
   pure WorkflowDispatchAttributes {..}
 
 genWorkflowDispatchInput :: (MonadGen m) => m WorkflowDispatchInput
 genWorkflowDispatchInput = do
-  workflowDispatchInputDescription <- Gen.maybe $ NonEmptyText.gen Gen.alphaNum
+  workflowDispatchInputDescription <- Gen.maybe genText
   workflowDispatchInputDefault <-
     Gen.maybe $
       Aeson.String
@@ -1276,7 +1243,7 @@ genWorkflowDispatchInputType :: (MonadGen m) => m WorkflowDispatchInputType
 genWorkflowDispatchInputType = do
   Gen.choice
     [ pure WorkflowDispatchInputTypeBoolean,
-      WorkflowDispatchInputTypeChoice <$> Gen.nonEmpty (Range.linear 1 5) (NonEmptyText.gen Gen.alphaNum),
+      WorkflowDispatchInputTypeChoice <$> Gen.nonEmpty (Range.linear 1 5) genText,
       pure WorkflowDispatchInputTypeEnvironment,
       pure WorkflowDispatchInputTypeNumber,
       pure WorkflowDispatchInputTypeString
@@ -1284,15 +1251,8 @@ genWorkflowDispatchInputType = do
 
 genWorkflowRunTriggerAttributes :: (MonadGen m) => m WorkflowRunTriggerAttributes
 genWorkflowRunTriggerAttributes = do
-  workflowRunActivityTypes <- genRoundTrippableNonEmpty Gen.enumBounded
-  workflowRunWorkflows <- Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $ NonEmptyText.gen Gen.alphaNum
-  workflowRunBranches <- Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $ NonEmptyText.gen Gen.alphaNum
-  workflowRunBranchesIgnore <- Gen.maybe . Gen.nonEmpty (Range.linear 1 5) $ NonEmptyText.gen Gen.alphaNum
+  workflowRunActivityTypes <- Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded
+  workflowRunWorkflows <- Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
+  workflowRunBranches <- Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
+  workflowRunBranchesIgnore <- Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pure WorkflowRunTriggerAttributes {..}
-
-genRoundTrippableNonEmpty :: (MonadGen m) => m a -> m (RoundTrippableNonEmpty a)
-genRoundTrippableNonEmpty g =
-  Gen.choice
-    [ RoundTrippableNonEmptyFromList <$> Gen.nonEmpty (Range.linear 1 10) g,
-      RoundTrippableNonEmptyFromString <$> g
-    ]

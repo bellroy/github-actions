@@ -5,6 +5,8 @@
 
 module Language.Github.Actions.Permissions
   ( Permissions (..),
+    PermissionType (..),
+    Permission (..),
     gen,
   )
 where

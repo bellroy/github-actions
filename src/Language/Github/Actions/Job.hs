@@ -5,6 +5,7 @@
 module Language.Github.Actions.Job
   ( Job (..),
     gen,
+    new,
   )
 where
 
@@ -33,31 +34,28 @@ import Language.Github.Actions.Service.Id (ServiceId)
 import Language.Github.Actions.Service.Id qualified as ServiceId
 import Language.Github.Actions.Step (Step)
 import Language.Github.Actions.Step qualified as Step
-import Language.Github.Actions.Types (ObjectKey, genObjectKeyMap)
 import Relude
-import Text.NonEmpty (NonEmptyText)
-import Text.NonEmpty qualified as NonEmptyText
 
 data Job = Job
   { concurrency :: Maybe Concurrency,
     container :: Maybe JobContainer,
     continueOnError :: Maybe Bool,
     defaults :: Maybe Defaults,
-    env :: Map ObjectKey NonEmptyText,
+    env :: Map Text Text,
     environment :: Maybe JobEnvironment,
-    jobName :: Maybe NonEmptyText,
+    jobName :: Maybe Text,
     needs :: Maybe (NonEmpty JobId),
-    outputs :: Map ObjectKey NonEmptyText,
+    outputs :: Map Text Text,
     permissions :: Maybe Permissions,
-    runIf :: Maybe NonEmptyText,
-    runsOn :: Maybe NonEmptyText,
-    secrets :: Map ObjectKey NonEmptyText,
+    runIf :: Maybe Text,
+    runsOn :: Maybe Text,
+    secrets :: Map Text Text,
     services :: Map ServiceId Service,
     steps :: Maybe (NonEmpty Step),
     strategy :: Maybe JobStrategy,
     timeoutMinutes :: Maybe Int,
-    uses :: Maybe NonEmptyText,
-    with :: Map ObjectKey NonEmptyText
+    uses :: Maybe Text,
+    with :: Map Text Text
   }
   deriving stock (Eq, Generic, Ord, Show)
 
@@ -112,25 +110,52 @@ instance ToJSON Job where
       monoidToMaybe :: (Eq a, Monoid a) => a -> Maybe a
       monoidToMaybe a = if a == mempty then Nothing else Just a
 
-gen :: (MonadGen m, MonadFail m) => m Job
+gen :: (MonadGen m) => m Job
 gen = do
   concurrency <- Gen.maybe Concurrency.gen
   container <- Gen.maybe JobContainer.gen
   continueOnError <- Gen.maybe Gen.bool
   defaults <- Gen.maybe Defaults.gen
-  env <- genObjectKeyMap (NonEmptyText.gen Gen.alphaNum)
+  env <- genTextMap
   environment <- Gen.maybe JobEnvironment.gen
-  jobName <- Gen.maybe (NonEmptyText.gen Gen.alphaNum)
+  jobName <- Gen.maybe genText
   needs <- Gen.maybe (Gen.nonEmpty (Range.linear 1 5) JobId.gen)
-  outputs <- genObjectKeyMap (NonEmptyText.gen Gen.alphaNum)
+  outputs <- genTextMap
   permissions <- Gen.maybe Permissions.gen
-  runIf <- Gen.maybe (NonEmptyText.gen Gen.alphaNum)
-  runsOn <- Gen.maybe (NonEmptyText.gen Gen.alphaNum)
-  secrets <- genObjectKeyMap (NonEmptyText.gen Gen.alphaNum)
+  runIf <- Gen.maybe genText
+  runsOn <- Gen.maybe genText
+  secrets <- genTextMap
   services <- Gen.map (Range.linear 1 5) $ liftA2 (,) ServiceId.gen Service.gen
   steps <- Gen.maybe (Gen.nonEmpty (Range.linear 1 20) Step.gen)
   strategy <- Gen.maybe JobStrategy.gen
   timeoutMinutes <- Gen.maybe $ Gen.int (Range.linear 1 120)
-  uses <- Gen.maybe (NonEmptyText.gen Gen.alphaNum)
-  with <- genObjectKeyMap (NonEmptyText.gen Gen.alphaNum)
+  uses <- Gen.maybe genText
+  with <- genTextMap
   pure Job {..}
+  where
+    genText = Gen.text (Range.linear 1 5) Gen.alphaNum
+    genTextMap = Gen.map (Range.linear 1 5) $ liftA2 (,) genText genText
+
+new :: Job
+new =
+  Job
+    { concurrency = Nothing,
+      container = Nothing,
+      continueOnError = Nothing,
+      defaults = Nothing,
+      env = mempty,
+      environment = Nothing,
+      jobName = Nothing,
+      needs = Nothing,
+      outputs = mempty,
+      permissions = Nothing,
+      runIf = Nothing,
+      runsOn = Nothing,
+      secrets = mempty,
+      services = mempty,
+      steps = Nothing,
+      strategy = Nothing,
+      timeoutMinutes = Nothing,
+      uses = Nothing,
+      with = mempty
+    }

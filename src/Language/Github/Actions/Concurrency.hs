@@ -13,12 +13,11 @@ import Data.Aeson (FromJSON, ToJSON (..), (.:?), (.=))
 import Data.Aeson qualified as Aeson
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
 import Relude hiding (group)
-import Text.NonEmpty (NonEmptyText)
-import Text.NonEmpty qualified as NonEmptyText
 
 data Concurrency = Concurrency
-  { group :: Maybe NonEmptyText,
+  { group :: Maybe Text,
     cancelInProgress :: Maybe Bool
   }
   deriving stock (Eq, Generic, Ord, Show)
@@ -38,6 +37,6 @@ instance ToJSON Concurrency where
 
 gen :: (MonadGen m) => m Concurrency
 gen = do
-  group <- Gen.maybe (NonEmptyText.gen Gen.alphaNum)
+  group <- Gen.maybe (Gen.text (Range.linear 1 5) Gen.alphaNum)
   cancelInProgress <- Gen.maybe Gen.bool
   pure Concurrency {..}

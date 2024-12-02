@@ -1,7 +1,6 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Language.Github.Actions.Job.Strategy
   ( JobStrategy (..),
@@ -17,18 +16,14 @@ import Data.Text qualified as Text
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Language.Github.Actions.Types (ObjectKey, genObjectKey)
-import Refined (refineTH, unrefine)
 import Relude
-import Text.NonEmpty (NonEmptyText)
-import Text.NonEmpty qualified as NonEmptyText
 
 data JobStrategy = JobStrategy
-  { exclude :: Maybe [NonEmptyText],
+  { exclude :: Maybe [Text],
     failFast :: Maybe Bool,
-    include :: Maybe [NonEmptyText],
+    include :: Maybe [Text],
     maxParallel :: Maybe Int,
-    otherVariables :: Maybe (Map ObjectKey Aeson.Value)
+    otherVariables :: Maybe (Map Text Aeson.Value)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
@@ -39,9 +34,9 @@ instance FromJSON JobStrategy where
     failFast <- o .:? "fail-fast"
     include <- matrix .:? "include"
     maxParallel <- o .:? "max-parallel"
-    rawMatrix :: Map ObjectKey Aeson.Value <- o .:? "matrix" .!= mempty
-    let excludeKey :: ObjectKey = $$(refineTH "exclude")
-        includeKey :: ObjectKey = $$(refineTH "include")
+    rawMatrix :: Map Text Aeson.Value <- o .:? "matrix" .!= mempty
+    let excludeKey :: Text = "exclude"
+        includeKey :: Text = "include"
         filteredRawMatrix =
           Map.filterWithKey
             (\k _ -> k /= excludeKey && k /= includeKey)
@@ -73,24 +68,21 @@ instance ToJSON JobStrategy where
               then Nothing
               else Just $ Aeson.object pairs
 
-      otherVariableMapToAesonPair :: Map ObjectKey Aeson.Value -> [Aeson.Pair]
+      otherVariableMapToAesonPair :: Map Text Aeson.Value -> [Aeson.Pair]
       otherVariableMapToAesonPair =
         Map.foldMapWithKey
           ( \k v ->
-              [(fromString . Text.unpack $ unrefine k) .= v]
+              [fromString (Text.unpack k) .= v]
           )
 
-gen :: (MonadGen m, MonadFail m) => m JobStrategy
+gen :: (MonadGen m) => m JobStrategy
 gen = do
-  exclude <- Gen.maybe . Gen.list (Range.linear 1 3) $ NonEmptyText.gen Gen.alphaNum
+  exclude <- Gen.maybe $ Gen.list (Range.linear 1 3) genText
   failFast <- Gen.maybe Gen.bool
-  include <- Gen.maybe . Gen.list (Range.linear 1 3) $ NonEmptyText.gen Gen.alphaNum
+  include <- Gen.maybe $ Gen.list (Range.linear 1 3) genText
   maxParallel <- Gen.maybe $ Gen.int (Range.linear 1 10)
-  otherVariables <-
-    Gen.maybe $
-      Gen.map (Range.linear 1 3) $
-        liftA2
-          (,)
-          genObjectKey
-          (Aeson.String <$> Gen.text (Range.linear 1 10) Gen.alphaNum)
+  otherVariables <- Gen.maybe $ Aeson.String <<$>> genTextMap
   pure JobStrategy {..}
+  where
+    genText = Gen.text (Range.linear 1 5) Gen.alphaNum
+    genTextMap = Gen.map (Range.linear 1 5) $ liftA2 (,) genText genText

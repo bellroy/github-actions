@@ -9,29 +9,24 @@ module Language.Github.Actions.Step.With
   )
 where
 
-import Control.Monad.Fail.Hoist (hoistFail')
 import Data.Aeson (FromJSON, ToJSON (..), (.:), (.:?), (.=))
 import Data.Aeson qualified as Aeson
 import Data.Aeson.KeyMap qualified as AesonKeyMap
-import Data.Map.NonEmpty (NEMap)
-import Data.Map.NonEmpty qualified as NEMap
 import Data.Set qualified as Set
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
-import Language.Github.Actions.Types (ObjectKey, genObjectKeyMap)
+import Hedgehog.Range qualified as Range
 import Relude hiding (id)
-import Text.NonEmpty (NonEmptyText)
-import Text.NonEmpty qualified as NonEmptyText
 
 data StepWithDockerArgsAttrs = StepWithDockerArgsAttrs
-  { entryPoint :: NonEmptyText,
-    args :: Maybe NonEmptyText
+  { entryPoint :: Text,
+    args :: Maybe Text
   }
   deriving stock (Eq, Generic, Ord, Show)
 
 data StepWith
   = StepWithDockerArgs StepWithDockerArgsAttrs
-  | StepWithEnv (NEMap ObjectKey NonEmptyText)
+  | StepWithEnv (Map Text Text)
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON StepWith where
@@ -56,16 +51,15 @@ instance ToJSON StepWith where
     StepWithEnv env ->
       toJSON env
 
-gen :: (MonadGen m, MonadFail m) => m StepWith
+gen :: (MonadGen m) => m StepWith
 gen =
   Gen.choice
     [ StepWithDockerArgs <$> do
-        entryPoint <- NonEmptyText.gen Gen.alphaNum
-        args <- Gen.maybe $ NonEmptyText.gen Gen.alphaNum
+        entryPoint <- genText
+        args <- Gen.maybe genText
         pure StepWithDockerArgsAttrs {..},
-      fmap StepWithEnv $
-        genObjectKeyMap (NonEmptyText.gen Gen.alphaNum)
-          >>= hoistFail'
-            . maybeToRight "Empty map of step->with args"
-            . NEMap.nonEmptyMap
+      StepWithEnv <$> genTextMap
     ]
+  where
+    genText = Gen.text (Range.linear 1 5) Gen.alphaNum
+    genTextMap = Gen.map (Range.linear 1 5) $ liftA2 (,) genText genText

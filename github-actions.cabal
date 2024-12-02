@@ -3,7 +3,7 @@ name:            github-actions
 version:         0.0.0.1
 synopsis:        Github Actions
 homepage:
-  https://github.com/bellroy/haskell/tree/master/lib/github/actions
+  https://github.com/bellroy/haskell/tree/master/lib/github-actions
 
 bug-reports:     https://github.com/bellroy/haskell/issues
 author:          Bellroy
@@ -19,17 +19,14 @@ source-repository head
 
 common deps
   build-depends:
-    , aeson                ^>=2.2.3.0
-    , base                 ^>=4.18
-    , containers           ^>=0.6.8
-    , hedgehog             ^>=1.5
-    , hoist-error          ^>=0.3.0.0
-    , nonempty-containers  ^>=0.3.4
-    , primitive-data       ^>=0.18.0
-    , refined              ^>=0.8.1
-    , relude               ^>=1.2
-    , string-interpolate   ^>=0.3.3
-    , vector               ^>=0.13.0.0
+    , aeson               ^>=2.2.3.0
+    , base                ^>=4.18
+    , containers          ^>=0.6.8
+    , hedgehog            ^>=1.5
+    , hoist-error         ^>=0.3.0.0
+    , relude              ^>=1.2
+    , string-interpolate  ^>=0.3.3
+    , vector              ^>=0.13.0.0
 
 common opts
   default-language:   GHC2021
@@ -61,7 +58,6 @@ library
     Language.Github.Actions.Step
     Language.Github.Actions.Step.Id
     Language.Github.Actions.Step.With
-    Language.Github.Actions.Types
     Language.Github.Actions.Workflow
     Language.Github.Actions.Workflow.Trigger
 
