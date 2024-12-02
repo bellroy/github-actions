@@ -10,7 +10,7 @@
 #
 # version: 0.19.20240708
 #
-# REGENDATA ("0.19.20240708",["github","unliftio-servant-server.cabal"])
+# REGENDATA ("0.19.20240708",["github","github-actions.cabal"])
 #
 name: Haskell-CI
 on:
@@ -160,17 +160,17 @@ jobs:
           find sdist -maxdepth 1 -type f -name '*.tar.gz' -exec tar -C $GITHUB_WORKSPACE/unpacked -xzvf {} \;
       - name: generate cabal.project
         run: |
-          PKGDIR_unliftio_servant_server="$(find "$GITHUB_WORKSPACE/unpacked" -maxdepth 1 -type d -regex '.*/unliftio-servant-server-[0-9.]*')"
+          PKGDIR_unliftio_servant_server="$(find "$GITHUB_WORKSPACE/unpacked" -maxdepth 1 -type d -regex '.*/github-actions-[0-9.]*')"
           echo "PKGDIR_unliftio_servant_server=${PKGDIR_unliftio_servant_server}" >> "$GITHUB_ENV"
           rm -f cabal.project cabal.project.local
           touch cabal.project
           touch cabal.project.local
           echo "packages: ${PKGDIR_unliftio_servant_server}" >> cabal.project
-          echo "package unliftio-servant-server" >> cabal.project
+          echo "package github-actions" >> cabal.project
           echo "    ghc-options: -Werror=missing-methods" >> cabal.project
           cat >> cabal.project <<EOF
           EOF
-          $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: any.$_ installed\n" unless /^(unliftio-servant-server)$/; }' >> cabal.project.local
+          $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: any.$_ installed\n" unless /^(github-actions)$/; }' >> cabal.project.local
           cat cabal.project
           cat cabal.project.local
       - name: dump install plan
