@@ -1,2 +1,4 @@
-dist*/
+.direnv/
+.envrc
 cabal.project.local
+dist*/
