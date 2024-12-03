@@ -7,12 +7,21 @@ module Language.Github.Actions.Job.Environment
   )
 where
 
+import Control.Applicative (liftA2, pure)
+import Control.Monad (fail)
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Aeson qualified as Aeson
+import Data.Eq (Eq)
+import Data.Function (($))
+import Data.Functor ((<$>))
+import Data.Map (Map)
+import Data.Ord (Ord)
+import Data.Text (Text)
+import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Relude
+import Text.Show (Show)
 
 data JobEnvironment
   = NamedJobEnvironment Text

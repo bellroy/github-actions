@@ -12,11 +12,22 @@ where
 import Control.Monad.Fail.Hoist (hoistFail')
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Aeson qualified as Aeson
+import Data.Either (Either (..))
+import Data.Eq (Eq)
+import Data.Function (($), (.))
+import Data.Functor ((<$>))
+import Data.Maybe (Maybe (..), maybe)
+import Data.Monoid ((<>))
+import Data.Ord (Ord)
+import Data.String (String)
 import Data.String.Interpolate (i)
+import Data.Text (Text)
+import Data.Text qualified as Text
+import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Relude hiding (group)
+import Text.Show (Show)
 
 data Shell
   = Bash (Maybe Text)
@@ -55,10 +66,10 @@ parseShell t =
     "sh" : args -> Right . LinuxMacOSOnlySh $ maybeArgs args
     _ -> Left [i|Unknown shell: #{t}|]
   where
-    tokens = words t
+    tokens = Text.words t
     maybeArgs = \case
       [] -> Nothing
-      args -> Just $ unwords args
+      args -> Just $ Text.unwords args
 
 gen :: (MonadGen m) => m Shell
 gen =

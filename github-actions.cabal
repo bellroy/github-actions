@@ -2,14 +2,14 @@ cabal-version:   2.4
 name:            github-actions
 version:         0.0.0.1
 synopsis:        Github Actions
-homepage:
-  https://github.com/bellroy/haskell/tree/master/lib/github-actions
-
-bug-reports:     https://github.com/bellroy/haskell/issues
-author:          Bellroy
-copyright:       Bellroy
-maintainer:      geeks@bellroy.com
-license:
+homepage:        https://github.com/bellroy/github-actions
+bug-reports:     https://github.com/bellroy/github-actions/issues
+license:         BSD-3-Clause
+license-file:    LICENSE
+author:          Bellroy Tech Team <haskell@bellroy.com>
+maintainer:      Bellroy Tech Team <haskell@bellroy.com>
+copyright:       Copyright (C) 2024 Bellroy Pty Ltd
+category:        Language
 build-type:      Simple
 extra-doc-files: README.md
 tested-with:
@@ -17,7 +17,7 @@ tested-with:
 
 source-repository head
   type:     git
-  location: https://github.com/bellroy/haskell.git
+  location: https://github.com/bellroy/github-actions.git
 
 common deps
   build-depends:
@@ -26,8 +26,8 @@ common deps
     , containers          ^>=0.6.8
     , hedgehog            ^>=1.5
     , hoist-error         ^>=0.3.0.0
-    , relude              ^>=1.2
     , string-interpolate  ^>=0.3.3
+    , text                ^>=2.1
     , vector              ^>=0.13.0.0
 
 common opts
@@ -48,6 +48,7 @@ library
   exposed-modules:
     Language.Github.Actions.Concurrency
     Language.Github.Actions.Defaults
+    Language.Github.Actions.Internal
     Language.Github.Actions.Job
     Language.Github.Actions.Job.Container
     Language.Github.Actions.Job.Environment

@@ -31,19 +31,35 @@ module Language.Github.Actions.Workflow.Trigger
   )
 where
 
+import Control.Applicative (liftA2, pure, (<|>))
+import Control.Monad (fail, guard, (>>=))
 import Control.Monad.Fail.Hoist (hoistFail')
 import Data.Aeson (FromJSON, ToJSON, ToJSONKey, (.:), (.:?), (.=))
 import Data.Aeson qualified as Aeson
 import Data.Aeson.KeyMap qualified as AesonKeyMap
 import Data.Aeson.Types qualified as Aeson
+import Data.Bool (Bool)
+import Data.Either (Either (..))
+import Data.Eq (Eq, (==))
+import Data.Function (const, ($), (.))
+import Data.Functor (fmap, (<$), (<$>))
+import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
+import Data.Map (Map)
 import Data.Map qualified as Map
+import Data.Maybe (Maybe (..), catMaybes, fromMaybe, isJust, maybe)
+import Data.Ord (Ord)
+import Data.String (String)
 import Data.String.Interpolate (i)
+import Data.Text (Text)
 import Data.Traversable (for)
 import Data.Vector qualified as Vector
+import GHC.Enum (Bounded, Enum)
+import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Relude
+import Language.Github.Actions.Internal (inverseMap)
+import Text.Show (Show)
 
 data BranchProtectionRuleActivityType
   = BranchProtectionRuleCreated
@@ -67,7 +83,7 @@ renderBranchProtectionRuleActivityType = \case
 
 parseBranchProtectionRuleActivityType :: Text -> Either String BranchProtectionRuleActivityType
 parseBranchProtectionRuleActivityType t =
-  maybe (fail [i|Unknown BranchProtectionRuleActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown BranchProtectionRuleActivityType: #{t}|]) Right $
     inverseMap renderBranchProtectionRuleActivityType t
 
 data CheckRunActivityType
@@ -94,7 +110,7 @@ renderCheckRunActivityType = \case
 
 parseCheckRunActivityType :: Text -> Either String CheckRunActivityType
 parseCheckRunActivityType t =
-  maybe (fail [i|Unknown CheckRunActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown CheckRunActivityType: #{t}|]) Right $
     inverseMap renderCheckRunActivityType t
 
 data DiscussionActivityType
@@ -139,7 +155,7 @@ renderDiscussionActivityType = \case
 
 parseDiscussionActivityType :: Text -> Either String DiscussionActivityType
 parseDiscussionActivityType t =
-  maybe (fail [i|Unknown DiscussionActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown DiscussionActivityType: #{t}|]) Right $
     inverseMap renderDiscussionActivityType t
 
 data DiscussionCommentActivityType
@@ -164,7 +180,7 @@ renderDiscussionCommentActivityType = \case
 
 parseDiscussionCommentActivityType :: Text -> Either String DiscussionCommentActivityType
 parseDiscussionCommentActivityType t =
-  maybe (fail [i|Unknown DiscussionCommentActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown DiscussionCommentActivityType: #{t}|]) Right $
     inverseMap renderDiscussionCommentActivityType t
 
 data IssueCommentActivityType
@@ -189,7 +205,7 @@ renderIssueCommentActivityType = \case
 
 parseIssueCommentActivityType :: Text -> Either String IssueCommentActivityType
 parseIssueCommentActivityType t =
-  maybe (fail [i|Unknown IssueCommentActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown IssueCommentActivityType: #{t}|]) Right $
     inverseMap renderIssueCommentActivityType t
 
 data IssuesActivityType
@@ -240,7 +256,7 @@ renderIssuesActivityType = \case
 
 parseIssuesActivityType :: Text -> Either String IssuesActivityType
 parseIssuesActivityType t =
-  maybe (fail [i|Unknown IssuesActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown IssuesActivityType: #{t}|]) Right $
     inverseMap renderIssuesActivityType t
 
 data LabelActivityType
@@ -265,7 +281,7 @@ renderLabelActivityType = \case
 
 parseLabelActivityType :: Text -> Either String LabelActivityType
 parseLabelActivityType t =
-  maybe (fail [i|Unknown LabelActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown LabelActivityType: #{t}|]) Right $
     inverseMap renderLabelActivityType t
 
 data MilestoneActivityType
@@ -294,7 +310,7 @@ renderMilestoneActivityType = \case
 
 parseMilestoneActivityType :: Text -> Either String MilestoneActivityType
 parseMilestoneActivityType t =
-  maybe (fail [i|Unknown MilestoneActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown MilestoneActivityType: #{t}|]) Right $
     inverseMap renderMilestoneActivityType t
 
 data PullRequestActivityType
@@ -355,7 +371,7 @@ renderPullRequestActivityType = \case
 
 parsePullRequestActivityType :: Text -> Either String PullRequestActivityType
 parsePullRequestActivityType t =
-  maybe (fail [i|Unknown PullRequestActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown PullRequestActivityType: #{t}|]) Right $
     inverseMap renderPullRequestActivityType t
 
 data PullRequestTriggerAttributes = PullRequestTriggerAttributes
@@ -409,7 +425,7 @@ renderPullRequestReviewActivityType = \case
 
 parsePullRequestReviewActivityType :: Text -> Either String PullRequestReviewActivityType
 parsePullRequestReviewActivityType t =
-  maybe (fail [i|Unknown PullRequestReviewActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown PullRequestReviewActivityType: #{t}|]) Right $
     inverseMap renderPullRequestReviewActivityType t
 
 data PullRequestReviewCommentActivityType
@@ -434,7 +450,7 @@ renderPullRequestReviewCommentActivityType = \case
 
 parsePullRequestReviewCommentActivityType :: Text -> Either String PullRequestReviewCommentActivityType
 parsePullRequestReviewCommentActivityType t =
-  maybe (fail [i|Unknown PullRequestReviewCommentActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown PullRequestReviewCommentActivityType: #{t}|]) Right $
     inverseMap renderPullRequestReviewCommentActivityType t
 
 data PullRequestTargetActivityType
@@ -487,7 +503,7 @@ renderPullRequestTargetActivityType = \case
 
 parsePullRequestTargetActivityType :: Text -> Either String PullRequestTargetActivityType
 parsePullRequestTargetActivityType t =
-  maybe (fail [i|Unknown PullRequestTargetActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown PullRequestTargetActivityType: #{t}|]) Right $
     inverseMap renderPullRequestTargetActivityType t
 
 data PullRequestTargetTriggerAttributes = PullRequestTargetTriggerAttributes
@@ -568,7 +584,7 @@ renderRegistryPackageActivityType = \case
 
 parseRegistryPackageActivityType :: Text -> Either String RegistryPackageActivityType
 parseRegistryPackageActivityType t =
-  maybe (fail [i|Unknown RegistryPackageActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown RegistryPackageActivityType: #{t}|]) Right $
     inverseMap renderRegistryPackageActivityType t
 
 data ReleaseActivityType
@@ -600,7 +616,7 @@ renderReleaseActivityType = \case
 
 parseReleaseActivityType :: Text -> Either String ReleaseActivityType
 parseReleaseActivityType t =
-  maybe (fail [i|Unknown ReleaseActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown ReleaseActivityType: #{t}|]) Right $
     inverseMap renderReleaseActivityType t
 
 data WorkflowCallInputType
@@ -624,7 +640,7 @@ renderWorkflowCallInputType = \case
 
 parseWorkflowCallInputType :: Text -> Either String WorkflowCallInputType
 parseWorkflowCallInputType t =
-  maybe (fail [i|Unknown WorkflowCallInputType: #{t}|]) pure $
+  maybe (Left [i|Unknown WorkflowCallInputType: #{t}|]) Right $
     inverseMap renderWorkflowCallInputType t
 
 data WorkflowCallInput = WorkflowCallInput
@@ -827,7 +843,7 @@ renderWorkflowRunActivityType = \case
 
 parseWorkflowRunActivityType :: Text -> Either String WorkflowRunActivityType
 parseWorkflowRunActivityType t =
-  maybe (fail [i|Unknown WorkflowRunActivityType: #{t}|]) pure $
+  maybe (Left [i|Unknown WorkflowRunActivityType: #{t}|]) Right $
     inverseMap renderWorkflowRunActivityType t
 
 data WorkflowRunTriggerAttributes = WorkflowRunTriggerAttributes

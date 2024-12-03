@@ -10,10 +10,25 @@ module Language.Github.Actions.Workflow
   )
 where
 
+import Control.Applicative (liftA2, pure)
 import Data.Aeson (FromJSON, ToJSON (..), (.!=), (.:), (.:?), (.=))
 import Data.Aeson qualified as Aeson
 import Data.Aeson.KeyMap qualified as AesonKeyMap
+import Data.Eq (Eq, (==))
+import Data.Function (($), (.))
+import Data.Functor ((<$>))
+import Data.List (elem, foldr)
+import Data.Map (Map)
+import Data.Maybe (Maybe (..), catMaybes)
+import Data.Monoid (Monoid, mconcat, mempty)
+import Data.Ord (Ord)
+import Data.Set (Set)
 import Data.Set qualified as Set
+import Data.Text (Text)
+import Data.Traversable (traverse)
+import Data.Tuple (snd, uncurry)
+import GHC.Err (error)
+import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -29,7 +44,7 @@ import Language.Github.Actions.Permissions (Permissions)
 import Language.Github.Actions.Permissions qualified as Permissions
 import Language.Github.Actions.Workflow.Trigger (WorkflowTrigger)
 import Language.Github.Actions.Workflow.Trigger qualified as WorkflowTrigger
-import Relude hiding (on)
+import Text.Show (Show)
 
 data WorkflowJobStep = WorkflowJobStep
   { name :: Maybe Text,
@@ -78,7 +93,7 @@ instance ToJSON Workflow where
           ("env" .=) <$> monoidToMaybe env,
           Just $ "jobs" .= jobs,
           ("name" .=) <$> workflowName,
-          Just $ "on" .= Aeson.Object (mconcat (forceToJSONObject . Aeson.toJSON <$> toList on)),
+          Just $ "on" .= Aeson.Object (mconcat (forceToJSONObject . Aeson.toJSON <$> Set.toList on)),
           ("permissions" .=) <$> permissions,
           ("run-name" .=) <$> runName
         ]
@@ -98,7 +113,7 @@ gen = do
   jobs <-
     Gen.map (Range.linear 1 5) (liftA2 (,) JobId.gen Job.gen)
   on <-
-    fromList
+    Set.fromList
       . snd
       . foldr onlyAddIfJsonKeyNotAlreadyPresent ([], [])
       <$> Gen.list (Range.linear 1 5) WorkflowTrigger.gen

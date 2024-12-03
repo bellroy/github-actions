@@ -7,7 +7,6 @@ import Data.Yaml qualified as YAML
 import Hedgehog.Extended (Property, trippingJSON)
 import Language.Github.Actions.Workflow (Workflow)
 import Language.Github.Actions.Workflow qualified as Workflow
-import Relude
 import System.FilePath (takeBaseName)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (findByExtension)
@@ -19,8 +18,8 @@ test_goldenWorkflowFromYaml = do
   goldenYamlFiles <-
     filter ((reverse ".golden.yml" `isPrefixOf`) . reverse)
       <$> findByExtension [".yml"] "test/golden"
-  pure $
-    testGroup
+  pure
+    $ testGroup
       "Yaml Roundtrip"
       [ runGoldenVsToYamlFileTest goldenYamlFilePath
         | goldenYamlFilePath <- goldenYamlFiles
@@ -28,11 +27,15 @@ test_goldenWorkflowFromYaml = do
   where
     runGoldenVsToYamlFileTest goldenYamlFilePath =
       let outputFilePath =
-            (<> ".yml") . reverse . drop 11 $
-              reverse goldenYamlFilePath
+            (<> ".yml")
+              . reverse
+              . drop 11
+              $ reverse goldenYamlFilePath
           haskellOutputFilePath =
-            (<> ".hs.txt") . reverse . drop 11 $
-              reverse goldenYamlFilePath
+            (<> ".hs.txt")
+              . reverse
+              . drop 11
+              $ reverse goldenYamlFilePath
        in goldenVsToYamlFile
             ("roundtrip " <> takeBaseName goldenYamlFilePath)
             goldenYamlFilePath

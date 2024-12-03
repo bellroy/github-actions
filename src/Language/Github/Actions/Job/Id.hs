@@ -8,10 +8,15 @@ module Language.Github.Actions.Job.Id
 where
 
 import Data.Aeson (FromJSON, FromJSONKey, ToJSON (..), ToJSONKey)
+import Data.Eq (Eq)
+import Data.Functor ((<$>))
+import Data.Ord (Ord)
+import Data.Text (Text)
+import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Relude
+import Text.Show (Show)
 
 newtype JobId = JobId Text
   deriving stock (Eq, Generic, Ord, Show)
