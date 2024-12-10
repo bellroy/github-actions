@@ -3,16 +3,15 @@
     "bellroy-nix-foss": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "haskell-ci": "haskell-ci",
         "nixpkgs": "nixpkgs",
         "pre-commit-hooks": "pre-commit-hooks"
       },
       "locked": {
-        "lastModified": 1733805212,
-        "narHash": "sha256-sm41ubCIuOdD/89PJVmVjkN4QJhM0hwd4dkb3UxTcIs=",
+        "lastModified": 1733824700,
+        "narHash": "sha256-1CK1PJE1z7dYEJSGaFHCtxDVcONh1AUZasqEhpf823E=",
         "owner": "bellroy",
         "repo": "bellroy-nix-foss",
-        "rev": "97809bb20e5b531b3fe53497ce315e731e0ed7c3",
+        "rev": "9758ab8a249a695cc1a5fe686b6a66d5f50319d8",
         "type": "github"
       },
       "original": {
@@ -74,22 +73,6 @@
       "original": {
         "owner": "hercules-ci",
         "repo": "gitignore.nix",
-        "type": "github"
-      }
-    },
-    "haskell-ci": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1733162672,
-        "narHash": "sha256-sM4nbl1CYojEcqah7Hl9x3p8ilr0iafVOQmNglRjEtI=",
-        "owner": "haskell-ci",
-        "repo": "haskell-ci",
-        "rev": "ec21b78d581f311e55dcd5326c9459a0bdc30b76",
-        "type": "github"
-      },
-      "original": {
-        "owner": "haskell-ci",
-        "repo": "haskell-ci",
         "type": "github"
       }
     },
