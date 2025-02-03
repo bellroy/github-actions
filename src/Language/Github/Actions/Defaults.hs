@@ -8,14 +8,9 @@ module Language.Github.Actions.Defaults
   )
 where
 
-import Control.Applicative (pure)
 import Data.Aeson (FromJSON, ToJSON, (.:), (.:?), (.=))
 import Data.Aeson qualified as Aeson
-import Data.Eq (Eq)
-import Data.Function (($))
-import Data.Functor ((<$>))
-import Data.Maybe (Maybe (..), catMaybes)
-import Data.Ord (Ord)
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
@@ -23,7 +18,6 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Language.Github.Actions.Shell (Shell)
 import Language.Github.Actions.Shell qualified as Shell
-import Text.Show (Show)
 
 data Defaults = Defaults
   { runShell :: Maybe Shell,

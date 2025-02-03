@@ -10,24 +10,14 @@ module Language.Github.Actions.Workflow
   )
 where
 
-import Control.Applicative (liftA2, pure)
 import Data.Aeson (FromJSON, ToJSON (..), (.!=), (.:), (.:?), (.=))
 import Data.Aeson qualified as Aeson
 import Data.Aeson.KeyMap qualified as AesonKeyMap
-import Data.Eq (Eq, (==))
-import Data.Function (($), (.))
-import Data.Functor ((<$>))
-import Data.List (elem, foldr)
 import Data.Map (Map)
-import Data.Maybe (Maybe (..), catMaybes)
-import Data.Monoid (Monoid, mconcat, mempty)
-import Data.Ord (Ord)
+import Data.Maybe (catMaybes)
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Text (Text)
-import Data.Traversable (traverse)
-import Data.Tuple (snd, uncurry)
-import GHC.Err (error)
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
@@ -44,7 +34,6 @@ import Language.Github.Actions.Permissions (Permissions)
 import Language.Github.Actions.Permissions qualified as Permissions
 import Language.Github.Actions.Workflow.Trigger (WorkflowTrigger)
 import Language.Github.Actions.Workflow.Trigger qualified as WorkflowTrigger
-import Text.Show (Show)
 
 data WorkflowJobStep = WorkflowJobStep
   { name :: Maybe Text,

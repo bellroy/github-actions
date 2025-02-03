@@ -9,18 +9,10 @@ module Language.Github.Actions.Step
   )
 where
 
-import Control.Applicative (liftA2, pure)
 import Data.Aeson (FromJSON, ToJSON (..), (.!=), (.:?), (.=))
 import Data.Aeson qualified as Aeson
-import Data.Bool (Bool (..))
-import Data.Eq (Eq, (==))
-import Data.Function (($))
-import Data.Functor ((<$>))
-import Data.Int (Int)
 import Data.Map (Map)
-import Data.Maybe (Maybe (..), catMaybes)
-import Data.Monoid (Monoid, mempty)
-import Data.Ord (Ord)
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
@@ -32,16 +24,15 @@ import Language.Github.Actions.Step.Id (StepId)
 import Language.Github.Actions.Step.Id qualified as StepId
 import Language.Github.Actions.Step.With (StepWith)
 import Language.Github.Actions.Step.With qualified as StepWith
-import Text.Show (Show)
 
 data Step = Step
   { continueOnError :: Bool,
     env :: Map Text Text,
-    id :: Maybe StepId,
     name :: Maybe Text,
     run :: Maybe Text,
     runIf :: Maybe Text,
     shell :: Maybe Shell,
+    stepId :: Maybe StepId,
     timeoutMinutes :: Maybe Int,
     uses :: Maybe Text,
     with :: Maybe StepWith,
@@ -53,12 +44,12 @@ instance FromJSON Step where
   parseJSON = Aeson.withObject "Step" $ \o -> do
     continueOnError <- o .:? "continue-on-error" .!= False
     env <- o .:? "env" .!= mempty
-    id <- o .:? "id"
     name <- o .:? "name"
     run <- o .:? "run"
     runIf <- o .:? "if"
     uses <- o .:? "uses"
     shell <- o .:? "shell"
+    stepId <- o .:? "id"
     timeoutMinutes <- o .:? "timeout-minutes"
     with <- o .:? "with"
     workingDirectory <- o .:? "working-directory"
@@ -70,7 +61,7 @@ instance ToJSON Step where
       catMaybes
         [ if continueOnError then Just ("continue-on-error" .= True) else Nothing,
           ("env" .=) <$> monoidToMaybe env,
-          ("id" .=) <$> id,
+          ("id" .=) <$> stepId,
           ("if" .=) <$> runIf,
           ("name" .=) <$> name,
           ("run" .=) <$> run,
@@ -88,11 +79,11 @@ gen :: (MonadGen m) => m Step
 gen = do
   continueOnError <- Gen.bool
   env <- genTextMap
-  id <- Gen.maybe StepId.gen
   name <- Gen.maybe genText
   run <- Gen.maybe genText
   runIf <- Gen.maybe genText
   shell <- Gen.maybe Shell.gen
+  stepId <- Gen.maybe StepId.gen
   timeoutMinutes <- Gen.maybe $ Gen.int (Range.linear 1 120)
   uses <- Gen.maybe genText
   with <- Gen.maybe StepWith.gen
@@ -107,11 +98,11 @@ new =
   Step
     { continueOnError = False,
       env = mempty,
-      id = Nothing,
       name = Nothing,
       run = Nothing,
       runIf = Nothing,
       shell = Nothing,
+      stepId = Nothing,
       timeoutMinutes = Nothing,
       uses = Nothing,
       with = Nothing,

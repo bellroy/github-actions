@@ -9,19 +9,11 @@ module Language.Github.Actions.Job
   )
 where
 
-import Control.Applicative (liftA2, pure)
 import Data.Aeson (FromJSON, ToJSON (..), (.!=), (.:?), (.=))
 import Data.Aeson qualified as Aeson
-import Data.Bool (Bool)
-import Data.Eq (Eq, (==))
-import Data.Function (($))
-import Data.Functor ((<$>))
-import Data.Int (Int)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
-import Data.Maybe (Maybe (..), catMaybes)
-import Data.Monoid (Monoid, mempty)
-import Data.Ord (Ord)
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
@@ -47,7 +39,6 @@ import Language.Github.Actions.Service.Id (ServiceId)
 import Language.Github.Actions.Service.Id qualified as ServiceId
 import Language.Github.Actions.Step (Step)
 import Language.Github.Actions.Step qualified as Step
-import Text.Show (Show)
 
 data Job = Job
   { concurrency :: Maybe Concurrency,

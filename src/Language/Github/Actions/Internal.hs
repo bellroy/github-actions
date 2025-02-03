@@ -3,12 +3,7 @@ module Language.Github.Actions.Internal
   )
 where
 
-import Data.Function ((.))
-import Data.Functor (Functor, fmap)
 import Data.Map qualified as Map
-import Data.Maybe (Maybe (..))
-import Data.Ord (Ord)
-import GHC.Enum (Bounded, Enum, maxBound, minBound)
 
 -- | https://hackage.haskell.org/package/relude-1.2.2.0/docs/src/Relude.Enum.html#inverseMap
 inverseMap ::

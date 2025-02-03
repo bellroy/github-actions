@@ -9,23 +9,17 @@ module Language.Github.Actions.Step.With
   )
 where
 
-import Control.Applicative (liftA2, pure)
 import Data.Aeson (FromJSON, ToJSON (..), (.:), (.:?), (.=))
 import Data.Aeson qualified as Aeson
 import Data.Aeson.KeyMap qualified as AesonKeyMap
-import Data.Eq (Eq)
-import Data.Function (($), (.))
-import Data.Functor ((<$>))
 import Data.Map (Map)
-import Data.Maybe (Maybe (..), catMaybes)
-import Data.Ord (Ord)
+import Data.Maybe (catMaybes)
 import Data.Set qualified as Set
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Text.Show (Show)
 
 data StepWithDockerArgsAttrs = StepWithDockerArgsAttrs
   { entryPoint :: Text,

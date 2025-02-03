@@ -11,29 +11,18 @@ module Language.Github.Actions.Permissions
   )
 where
 
-import Control.Applicative (liftA2, pure)
-import Control.Monad (fail)
 import Control.Monad.Fail.Hoist (hoistFail')
 import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import Data.Aeson qualified as Aeson
 import Data.Aeson.Types qualified as Aeson
-import Data.Either (Either (..))
-import Data.Eq (Eq)
-import Data.Function (($), (.))
-import Data.Functor (fmap, (<$>))
 import Data.Map (Map)
-import Data.Maybe (maybe)
-import Data.Ord (Ord)
-import Data.String (String)
 import Data.String.Interpolate (i)
 import Data.Text (Text)
-import GHC.Enum (Bounded, Enum)
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Language.Github.Actions.Internal (inverseMap)
-import Text.Show (Show)
 
 data PermissionType
   = Actions

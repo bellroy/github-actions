@@ -8,21 +8,12 @@ module Language.Github.Actions.Job.Strategy
   )
 where
 
-import Control.Applicative (liftA2, pure)
 import Data.Aeson (FromJSON, ToJSON, (.!=), (.:?), (.=))
 import Data.Aeson qualified as Aeson
 import Data.Aeson.Types qualified as Aeson
-import Data.Bool (Bool, (&&))
-import Data.Eq (Eq, (/=))
-import Data.Function (($), (.))
-import Data.Functor (fmap, (<$>))
-import Data.Int (Int)
-import Data.List (null, (++))
 import Data.Map (Map)
 import Data.Map qualified as Map
-import Data.Maybe (Maybe (..), catMaybes, maybe)
-import Data.Monoid (mempty)
-import Data.Ord (Ord)
+import Data.Maybe (catMaybes)
 import Data.String (fromString)
 import Data.Text (Text)
 import Data.Text qualified as Text
@@ -30,7 +21,6 @@ import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Text.Show (Show)
 
 data JobStrategy = JobStrategy
   { exclude :: Maybe [Text],

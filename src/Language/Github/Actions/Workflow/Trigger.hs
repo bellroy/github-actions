@@ -31,35 +31,26 @@ module Language.Github.Actions.Workflow.Trigger
   )
 where
 
-import Control.Applicative (liftA2, pure, (<|>))
-import Control.Monad (fail, guard, (>>=))
+import Control.Applicative ((<|>))
+import Control.Monad (guard)
 import Control.Monad.Fail.Hoist (hoistFail')
 import Data.Aeson (FromJSON, ToJSON, ToJSONKey, (.:), (.:?), (.=))
 import Data.Aeson qualified as Aeson
 import Data.Aeson.KeyMap qualified as AesonKeyMap
 import Data.Aeson.Types qualified as Aeson
-import Data.Bool (Bool)
-import Data.Either (Either (..))
-import Data.Eq (Eq, (==))
-import Data.Function (const, ($), (.))
-import Data.Functor (fmap, (<$), (<$>))
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
 import Data.Map (Map)
 import Data.Map qualified as Map
-import Data.Maybe (Maybe (..), catMaybes, fromMaybe, isJust, maybe)
-import Data.Ord (Ord)
-import Data.String (String)
+import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.String.Interpolate (i)
 import Data.Text (Text)
 import Data.Traversable (for)
 import Data.Vector qualified as Vector
-import GHC.Enum (Bounded, Enum)
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Language.Github.Actions.Internal (inverseMap)
-import Text.Show (Show)
 
 data BranchProtectionRuleActivityType
   = BranchProtectionRuleCreated

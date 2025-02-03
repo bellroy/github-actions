@@ -31,13 +31,12 @@ common deps
     , vector              ^>=0.13.0.0
 
 common opts
-  default-language:   GHC2021
-  default-extensions: NoImplicitPrelude
+  default-language: GHC2021
   ghc-options:
-    -Wall -Wcompat -Widentities -Wimplicit-prelude
-    -Wincomplete-record-updates -Wincomplete-uni-patterns
-    -Werror=incomplete-patterns -Wredundant-constraints
-    -Wpartial-fields -Wtabs -Wmissing-local-signatures -fhelpful-errors
+    -Wall -Wcompat -Widentities -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Werror=incomplete-patterns
+    -Wredundant-constraints -Wpartial-fields -Wtabs
+    -Wmissing-local-signatures -fhelpful-errors
     -fprint-expanded-synonyms -fwarn-unused-do-bind
 
 library
