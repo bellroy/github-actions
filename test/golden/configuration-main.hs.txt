@@ -2,1162 +2,1029 @@ Workflow
   { concurrency =
       Just
         Concurrency
-          { group = Just (Refined "${{ github.ref }}")
+          { group = Just "${{ github.ref }}"
           , cancelInProgress = Just False
           }
   , defaults = Nothing
-  , env =
-      fromList
-        [
-        , ( Refined "SYSTEM_NAME" , Refined "Product Configuration" )
-        ]
+  , env = fromList [ ( "SYSTEM_NAME" , "Product Configuration" ) ]
   , jobs =
       fromList
-        (( JobId (Refined "build")
-         , Job
-             { concurrency = Nothing
-             , container = Nothing
-             , continueOnError = Nothing
-             , defaults = Nothing
-             , env = fromList []
-             , environment = Nothing
-             , jobName = Nothing
-             , needs = Just (JobId (Refined "validateContent") :| [])
-             , outputs = fromList []
-             , permissions = Nothing
-             , runIf = Nothing
-             , runsOn = Just (Refined "ubuntu-20.04")
-             , secrets = fromList []
-             , services = fromList []
-             , steps =
-                 Just
-                   (Step
-                      { continueOnError = False
-                      , env = fromList []
-                      , id = Nothing
-                      , name = Just (Refined "checkout branch")
-                      , run = Nothing
-                      , runIf =
-                          Just
-                            (Refined
-                               "github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable'")
-                      , shell = Nothing
-                      , timeoutMinutes = Nothing
-                      , uses =
-                          Just (Refined "bellroy/gha-workflows/composite/checkout@master")
-                      , with =
-                          Just
-                            (StepWithEnv
-                               (fromList
-                                  (( Refined "fetch-depth" , Refined "0" ) :|
-                                     [ ( Refined "token" , Refined "${{ env.GH_TOKEN }}" ) ])))
-                      , workingDirectory = Nothing
-                      } :|
-                      [ Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "checkout branch")
-                          , run = Nothing
-                          , runIf =
-                              Just
-                                (Refined
-                                   "github.ref != 'refs/heads/master' && github.ref != 'refs/heads/stable'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses =
-                              Just (Refined "bellroy/gha-workflows/composite/checkout@master")
-                          , with =
-                              Just
-                                (StepWithEnv
-                                   (fromList
-                                      (( Refined "fetch-depth" , Refined "1" ) :|
-                                         [ ( Refined "token" , Refined "${{ env.GH_TOKEN }}" ) ])))
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Just (StepId (Refined "extract_branch"))
-                          , name = Just (Refined "Extract branch name")
-                          , run =
-                              Just
-                                (Refined
-                                   "echo \"branch=${GITHUB_REF#refs/heads/}\" >> $GITHUB_OUTPUT\n")
-                          , runIf = Nothing
-                          , shell = Just (Bash Nothing)
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Set env variables for staging")
-                          , run =
-                              Just
-                                (Refined
-                                   "echo \"DESTINATION=Staging Environment\" >> $GITHUB_ENV\necho \"ENVIRONMENT=staging\" >> $GITHUB_ENV\n")
-                          , runIf = Just (Refined "github.ref == 'refs/heads/master'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Set env variables for production")
-                          , run =
-                              Just
-                                (Refined
-                                   "echo \"DESTINATION=Production Environment\" >> $GITHUB_ENV\necho \"ENVIRONMENT=production\" >> $GITHUB_ENV\n")
-                          , runIf = Just (Refined "github.ref == 'refs/heads/stable'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Install and setup nix")
-                          , run = Nothing
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses =
-                              Just (Refined "bellroy/gha-workflows/composite/install-nix@master")
-                          , with =
-                              Just
-                                (StepWithEnv
-                                   (fromList
-                                      (( Refined "bellroy-nix-cache-access" , Refined "none" ) :|
-                                         [ ( Refined "nix-config-access-tokens"
-                                           , Refined
-                                               "github.com=${{ secrets.READ_HASKELL_REPO_PAT }}"
-                                           )
-                                         ])))
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Install script packages")
-                          , run =
-                              Just
-                                (Refined "sudo apt-get update\nsudo apt-get install -y parallel\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Get Pull Request number")
-                          , run =
-                              Just
-                                (Refined
-                                   "echo \"PR_NUMBER=$(gh pr view --json number -q .number)\" >> $GITHUB_ENV\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Just (Refined "${{ env.GITHUB_WORKSPACE }}")
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Just (StepId (Refined "changed-files"))
-                          , name = Just (Refined "Get changed files")
-                          , run = Nothing
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses =
-                              Just
-                                (Refined
-                                   "tj-actions/changed-files@48d8f15b2aaa3d255ca5af3eba4870f807ce6b3c")
-                          , with =
-                              Just
-                                (StepWithEnv
-                                   (fromList
-                                      (( Refined "path"
-                                       , Refined "${{ env.GIT_REPOSITORY_PATH }}"
-                                       ) :|
-                                         [])))
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Just (StepId (Refined "check_changes"))
-                          , name = Just (Refined "Check for CSV changes")
-                          , run =
-                              Just
-                                (Refined
-                                   "echo \"csv_changed=${{ steps.changed-files.outputs.all_changed_files == '' && '0' || contains(steps.changed-files.outputs.all_changed_files, '.csv') && '1' || '0' }}\" >> $GITHUB_OUTPUT")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name =
-                              Just
-                                (Refined
-                                   "Check that all configuration CSV files are sorted alphabetically")
-                          , run =
-                              Just
-                                (Refined
-                                   "set +e\nIFS= output=$(./scripts/check_configuration_csvs_sorted 2>&1)\nstatus=$?\n\nif (($status)); then\n  echo \"Configuration CSV files are not sorted:\" >>/tmp/pr-comment.txt\n  echo \"\" >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  echo $output >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  exit $status\nelse\n  echo \"All configuration CSV files are sorted.\"\nfi\n")
-                          , runIf =
-                              Just (Refined "steps.check_changes.outputs.csv_changed == '1'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Just (StepId (Refined "fetch_byproduct"))
-                          , name = Just (Refined "Fetch byproduct")
-                          , run = Nothing
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses =
-                              Just (Refined "bellroy/gha-workflows/composite/get-tool@master")
-                          , with =
-                              Just
-                                (StepWithEnv
-                                   (fromList
-                                      (( Refined "token"
-                                       , Refined "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
-                                       ) :|
-                                         [ ( Refined "tool-name" , Refined "byproduct" )
-                                         , ( Refined "tool-version" , Refined "latest" )
-                                         ])))
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Just (StepId (Refined "fetch_gitapult"))
-                          , name = Just (Refined "Fetch gitapult")
-                          , run = Nothing
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses =
-                              Just (Refined "bellroy/gha-workflows/composite/get-tool@master")
-                          , with =
-                              Just
-                                (StepWithEnv
-                                   (fromList
-                                      (( Refined "token"
-                                       , Refined "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
-                                       ) :|
-                                         [ ( Refined "tool-name" , Refined "gitapult" )
-                                         , ( Refined "tool-version" , Refined "latest" )
-                                         ])))
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Just (StepId (Refined "fetch_config-rules-cli"))
-                          , name = Just (Refined "Fetch config-rules-cli")
-                          , run = Nothing
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses =
-                              Just (Refined "bellroy/gha-workflows/composite/get-tool@master")
-                          , with =
-                              Just
-                                (StepWithEnv
-                                   (fromList
-                                      (( Refined "token"
-                                       , Refined "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
-                                       ) :|
-                                         [ ( Refined "tool-name" , Refined "config-rules-cli" )
-                                         , ( Refined "tool-version" , Refined "latest" )
-                                         ])))
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Just (StepId (Refined "fetch_powerful-owl"))
-                          , name = Just (Refined "Fetch powerful-owl")
-                          , run = Nothing
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses =
-                              Just (Refined "bellroy/gha-workflows/composite/get-tool@master")
-                          , with =
-                              Just
-                                (StepWithEnv
-                                   (fromList
-                                      (( Refined "token"
-                                       , Refined "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
-                                       ) :|
-                                         [ ( Refined "tool-name" , Refined "powerful-owl" )
-                                         , ( Refined "tool-version" , Refined "latest" )
-                                         ])))
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Run byproduct once")
-                          , run =
-                              Just
-                                (Refined
-                                   "find products/autogenerated/ -type f -name '*.json' | grep -v './\\.' | xargs rm\n./byproduct execute --once --in products/configuration --out products/autogenerated\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Configure git")
-                          , run =
-                              Just
-                                (Refined
-                                   "git config --global user.name \"${{ github.actor }}\"\ngit config --global user.email \"${{ github.actor }}@users.noreply.github.com\"\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Update autogenerated product files")
-                          , run =
-                              Just
-                                (Refined
-                                   "git add products/autogenerated\nif git commit -m \"Update autogenerated product files\"; then\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nelse\n  echo \"No changes detected\"\nfi\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name =
-                              Just (Refined "Update products autogenerated content blocks")
-                          , run =
-                              Just
-                                (Refined
-                                   "scripts/update_products_autogenerated_content_blocks\ngit add products/content\n\nif git commit -m \"Update autogenerated products content blocks\"; then\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nelse\n  echo \"No changes detected\"\nfi\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Set merge base")
-                          , run =
-                              Just
-                                (Refined
-                                   "if [ \"${{ github.ref }}\" = \"refs/heads/master\" ]; then\n  echo \"MERGE_BASE=origin/stable\" >> $GITHUB_ENV\nelse\n  echo \"MERGE_BASE=$(git show-branch --merge-base origin/master ${{ steps.extract_branch.outputs.branch }})\" >> $GITHUB_ENV\nfi\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name =
-                              Just (Refined "Write byproduct validate output to env variable")
-                          , run =
-                              Just
-                                (Refined
-                                   "set +e\nIFS= output=$(./gitapult changeset --git_root \"$GITHUB_WORKSPACE\" --from \"${{ env.MERGE_BASE }}\" | ./byproduct validate --markdown 2>&1)\nstatus=$?\n\nif (($status)); then\n  echo $output >>/tmp/pr-comment.txt\n  exit $status\nelse\n  echo \"Byproduct validation succeeded.\"\nfi\n")
-                          , runIf = Just (Refined "env.PR_NUMBER != 0")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Update feed autogenerated content blocks")
-                          , run =
-                              Just
-                                (Refined
-                                   "nix run .#update_feeds_autogenerated_content_blocks\ngit add feeds/content\n\nif git commit -m \"Update autogenerated feed content blocks\"; then\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nelse\n  echo \"No changes detected\"\nfi\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Update feed autogenerated rendering data")
-                          , run =
-                              Just
-                                (Refined
-                                   "POWERFUL_OWL_COMMAND=$GITHUB_WORKSPACE/powerful-owl POWERFUL_OWL_FOLDER=./feeds/ ./scripts/generate-rendering-data\ngit add ./feeds/page_rendering_data\ngit add ./feeds/rendering_data\n\nif git commit -m \"Update feed autogenerated rendering data\"; then\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nelse\n  echo \"No changes detected\"\nfi\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory =
-                              Just (Refined "${{ env.GIT_REPOSITORY_PATH }}")
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Update feed golden tests")
-                          , run =
-                              Just
-                                (Refined
-                                   "scripts/update_feeds_golden_tests\ngit add feeds/tests/golden\n\nif git commit -m \"Update autogenerated feeds golden test outputs\"; then\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nelse\n  echo \"No changes detected\"\nfi\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name =
-                              Just (Refined "Update autogenerated shipping configuration files")
-                          , run =
-                              Just
-                                (Refined
-                                   "set +e\nIFS= output=$(./config-rules-cli shipping-options-transform --input-csv-dir shipping/configuration --output-json-dir shipping/autogenerated)\nstatus=$?\n\nif (($status)); then\n  echo \"Failed to transform shipping data\" >>/tmp/pr-comment.txt\n  echo \"\" >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  echo $output >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  exit $status\nelse\n  git add shipping/autogenerated\n  if git commit -m \"Update autogenerated shipping configuration files\"; then\n    echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\n  else\n    echo \"No changes detected\"\n  fi\nfi\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Generate new shipping tests")
-                          , run =
-                              Just
-                                (Refined
-                                   "SHIPPING_TEST_DIRECTORY=shipping/tests\n  find $SHIPPING_TEST_DIRECTORY -type f -name '*.result.json' -exec rm {} \\;\n    ./config-rules-cli -- shipping-options-check --repo-dir .\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Commit new shipping tests")
-                          , run =
-                              Just
-                                (Refined
-                                   "if [ $(git status shipping/tests --porcelain=v1 | wc -l) -gt 0 ]\nthen\n  git add shipping/tests\n  git commit -m \"Update shipping tests\"\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nfi\n")
-                          , runIf =
-                              Just
-                                (Refined
-                                   "env.PR_NUMBER != 0 && github.ref != 'refs/heads/stable' && github.ref != 'refs/heads/master'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name =
-                              Just (Refined "Update autogenerated promotion configuration files")
-                          , run =
-                              Just
-                                (Refined
-                                   "set +e\nIFS= output=$(./config-rules-cli promotion-transform --input-csv-dir promotions/configuration --output-json-dir promotions/autogenerated)\nstatus=$?\n\nif (($status)); then\n  echo \"Failed to transform promotions data\" >>/tmp/pr-comment.txt\n  echo \"\" >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  echo $output >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  exit $status\nelse\n  git add promotions/autogenerated\n  if git commit -m \"Update autogenerated promotions configuration files\"; then\n    echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\n  else\n    echo \"No changes detected\"\n  fi\nfi\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Generate new promotion rule tests")
-                          , run =
-                              Just
-                                (Refined
-                                   "PROMOTIONS_TEST_DIRECTORY=promotions/tests\n  find $PROMOTIONS_TEST_DIRECTORY -type f -name '*.result.json' -exec rm {} \\;\n    ./config-rules-cli -- promotion-check --repo-dir .\n")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Commit new promotion tests")
-                          , run =
-                              Just
-                                (Refined
-                                   "if [ $(git status promotions/tests --porcelain=v1 | wc -l) -gt 0 ]\nthen\n  git add promotions/tests\n  git commit -m \"Update promotion tests\"\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nfi\n")
-                          , runIf =
-                              Just
-                                (Refined
-                                   "env.PR_NUMBER != 0 && github.ref != 'refs/heads/stable' && github.ref != 'refs/heads/master'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name =
-                              Just
-                                (Refined
-                                   "Push any new commits and exit workflow if commits pushed")
-                          , run =
-                              Just
-                                (Refined
-                                   "git push --set-upstream origin HEAD\n\ngh run cancel ${{ github.run_id }}\ngh run watch ${{ github.run_id }}\n")
-                          , runIf = Just (Refined "env.GENERATED_ANOTHER_COMMIT == 'true'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Just (StepId (Refined "current-time"))
-                          , name = Just (Refined "Get current time")
-                          , run =
-                              Just
-                                (Refined
-                                   "echo \"timestamp=$(date -u +\"%y%m%d%H%M%S\")\" >> $GITHUB_OUTPUT")
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Just (StepId (Refined "extract_changes"))
-                          , name = Just (Refined "Set changes variable")
-                          , run =
-                              Just
-                                (Refined
-                                   "echo \"COMMIT_CHANGES<<EOF\" >> $GITHUB_ENV\necho \"$(git log --oneline --format=\\\"%s\\\" $(git tag -l [0-9]*_${{ env.ENVIRONMENT }} | tail -n 1)..${{ steps.extract_branch.outputs.branch }} | grep -v 'Merge pull request' | grep -v \"Merge branch 'master' into\" | sed -e 's/^\"//' -e 's/\"$//' | cat)\" >> $GITHUB_ENV\necho \"EOF\" >> $GITHUB_ENV\n")
-                          , runIf =
-                              Just
-                                (Refined
-                                   "github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master'")
-                          , shell = Just (Bash Nothing)
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Just (Refined "${{ env.GITHUB_WORKSPACE }}")
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env =
-                              fromList
-                                [ ( Refined "SLACK_BOT_TOKEN"
-                                  , "${{ secrets.BELLROY_SLACK_TOKEN }}"
-                                  )
-                                ]
-                          , id = Just (StepId (Refined "slack-deploy"))
-                          , name = Just (Refined "Slack - Notifications - Post to slack")
-                          , run = Nothing
-                          , runIf =
-                              Just
-                                (Refined
-                                   "github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses =
-                              Just
-                                (Refined
-                                   "slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e")
-                          , with =
-                              Just
-                                (StepWithEnv
-                                   (fromList
-                                      (( Refined "channel-id"
-                                       , Refined "${{ env.SLACK_CHANNEL_ID }}"
-                                       ) :|
-                                         [ ( Refined "payload"
-                                           , Refined
-                                               "{\n  \"text\": \":loudspeaker: *${{ github.actor }}* is deploying *${{ env.SYSTEM_NAME }}* to *${{ env.DESTINATION }}* from *${{ steps.extract_branch.outputs.branch }}*\",\n  \"attachments\": [\n    {\n      \"fallback\": \"Deployment summary\",\n      \"color\": \"ffd966\",\n      \"fields\": [\n        {\n          \"title\": \"What is being deployed\",\n          \"value\": ${{ toJSON(env.COMMIT_CHANGES) }},\n          \"short\": false\n        },\n        {\n          \"title\": \"Status\",\n          \"short\": true,\n          \"value\": \"In Progress\"\n        }\n      ]\n    }\n  ]\n}\n"
-                                           )
-                                         ])))
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Push content to staging")
-                          , run =
-                              Just
-                                (Refined
-                                   "set -e\n# XXX: Gitapult cannot distinguish datasets, so we push all data to\n# both endpoints and allow the server to decide what to do.\n# Kafka Webhooks accepts all datasets at once\n./gitapult run \\\n  --git_root \"$GITHUB_WORKSPACE\" \\\n  --authorization_token \"$KW_STAGING_API_KEY\" \\\n  --changeset_url \"$KW_STAGING_BASE_URL/gitapult/configuration/records\" \\\n  --revision_url \"$KW_STAGING_BASE_URL/gitapult/configuration/revision\" \\\n  --api_key \\\n  --compress \\\n  --max-payload-bytes 3000000\n\n# XXX: V3 doesn't care about rendering data, but it is too large to send.\n# As at 2024-02-14 gitapult does not support selecting which data to send.\ngit -C \"$GIT_REPOSITORY_PATH\" rm feeds/rendering_data/.gitapult.json\n./gitapult run \\\n  --git_root \"$GITHUB_WORKSPACE\" \\\n  --authorization_token \"$SF_STAGING_API_KEY\" \\\n  --changeset_url \"$SF_STAGING_BASE_URL/api/v1/configuration/shipping\" \\\n  --revision_url \"$SF_STAGING_BASE_URL/api/v1/configuration/shipping/revisions\" && \\\ngit -C \"$GIT_REPOSITORY_PATH\" restore --staged feeds/rendering_data/.gitapult.json\ngit -C \"$GIT_REPOSITORY_PATH\" restore feeds/rendering_data/.gitapult.json\n")
-                          , runIf = Just (Refined "github.ref == 'refs/heads/master'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Tag published staging content")
-                          , run =
-                              Just
-                                (Refined
-                                   "git tag \"${{ join(steps.current-time.outputs.*, '\\n') }}_staging\" && git push --tags\n")
-                          , runIf =
-                              Just (Refined "success() && github.ref == 'refs/heads/master'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Open PR to stable")
-                          , run =
-                              Just
-                                (Refined
-                                   "curl -X POST -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls -d '{\"head\":\"master\",\"base\":\"stable\",\"title\":\"Merge branch master into stable\",\"body\":\"This PR was automatically generated by CI.\"}'\nPR_URL=$(curl -sX GET -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls\\?head\\=bellroy:master\\&base\\=stable | jq -r '.[0].html_url | select(length>0)')\necho \"PR_URL=$PR_URL\" >> $GITHUB_ENV\n")
-                          , runIf = Just (Refined "github.ref == 'refs/heads/master'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = True
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Set assignee")
-                          , run =
-                              Just
-                                (Refined
-                                   "PR_RESPONSE=$(curl -sX GET -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls\\?head\\=bellroy:master\\&base\\=stable | jq -r '.[0]')\nPR_NUM=$(echo \"$PR_RESPONSE\" | jq -r \".number\")\nPR_ASSIGNEE=$(echo \"$PR_RESPONSE\" | jq -r \".assignee\")\nCOMMITS_RESPONSE=$(curl -sX GET -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUM/commits)\nFIRST_COMMITTER=$(curl -sX GET -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUM/commits | jq -r '. | sort_by(.commit.author.date) | .[0] | .author.login')\n# special case for squashed PRs created by trike-deploy e.g. gha-workflows\nif [[ \"$FIRST_COMMITTER\" == \"trike-deploy\" ]]; then\n    FIRST_COMMITTER=$(echo \"$COMMITS_RESPONSE\" | jq -r '. | sort_by(.commit.author.date) | .[0]' | sed -En \"s/.*Co-authored-by: (.*) <.*@.*>\\\",/\\1/p\")\nfi\nif [[ \"$PR_ASSIGNEE\" == \"null\" ]]; then\n    curl -sX POST -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUM/assignees -d \"{\\\"assignees\\\":[\\\"$FIRST_COMMITTER\\\"]}\"\nfi\n")
-                          , runIf = Just (Refined "github.ref == 'refs/heads/master'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Push content to production")
-                          , run =
-                              Just
-                                (Refined
-                                   "set -e\n# XXX: Gitapult cannot distinguish datasets, so we push all data to\n# both endpoints and allow the server to decide what to do.\n# Kafka Webhooks accepts all datasets at once\n./gitapult run \\\n  --git_root \"$GITHUB_WORKSPACE\" \\\n  --authorization_token \"$KW_PRODUCTION_API_KEY\" \\\n  --changeset_url \"$KW_PRODUCTION_BASE_URL/gitapult/configuration/records\" \\\n  --revision_url \"$KW_PRODUCTION_BASE_URL/gitapult/configuration/revision\" \\\n  --api_key \\\n  --compress \\\n  --max-payload-bytes 3000000\n\n# XXX: V3 doesn't care about rendering data, but it is too large to send.\n# As at 2024-02-14 gitapult does not support selecting which data to send.\ngit -C \"$GIT_REPOSITORY_PATH\" rm feeds/rendering_data/.gitapult.json\n./gitapult run \\\n  --git_root \"$GITHUB_WORKSPACE\" \\\n  --authorization_token \"$SF_PRODUCTION_API_KEY\" \\\n  --changeset_url \"$SF_PRODUCTION_BASE_URL/api/v1/configuration/shipping\" \\\n  --revision_url \"$SF_PRODUCTION_BASE_URL/api/v1/configuration/shipping/revisions\" && \\\ngit -C \"$GIT_REPOSITORY_PATH\" restore --staged feeds/rendering_data/.gitapult.json\ngit -C \"$GIT_REPOSITORY_PATH\" restore feeds/rendering_data/.gitapult.json\n")
-                          , runIf = Just (Refined "github.ref == 'refs/heads/stable'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Tag published production content")
-                          , run =
-                              Just
-                                (Refined
-                                   "git tag \"${{ join(steps.current-time.outputs.*, '\\n') }}_production\" && git push --tags\n")
-                          , runIf =
-                              Just (Refined "success() && github.ref == 'refs/heads/stable'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Set success message variable for staging")
-                          , run =
-                              Just
-                                (Refined
-                                   "echo \"SUCCESS_MESSAGE=:tada: \\nA PR has been opened against the stable branch: ${{ env.PR_URL }}\" >> $GITHUB_ENV\necho \"SUCCESS_MESSAGE_BODY=https://github.com/${{ github.repository }}/commit/${{ github.sha }}/checks\\n\\n*PR for Production:* ${{ env.PR_URL }}\" >> $GITHUB_ENV\n")
-                          , runIf = Just (Refined "github.ref == 'refs/heads/master'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name =
-                              Just (Refined "Set success message variable for production")
-                          , run =
-                              Just
-                                (Refined
-                                   "echo \"SUCCESS_MESSAGE=:tada:\" >> $GITHUB_ENV\necho \"SUCCESS_MESSAGE_BODY=https://github.com/${{ github.repository }}/commit/${{ github.sha }}/checks\" >> $GITHUB_ENV\n")
-                          , runIf = Just (Refined "github.ref == 'refs/heads/stable'")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env =
-                              fromList
-                                [ ( Refined "SLACK_BOT_TOKEN"
-                                  , "${{ secrets.BELLROY_SLACK_TOKEN }}"
-                                  )
-                                ]
-                          , id = Just (StepId (Refined "slack-deploy-success"))
-                          , name = Just (Refined "Post to Slack if published successfully")
-                          , run = Nothing
-                          , runIf =
-                              Just
-                                (Refined
-                                   "success() && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master')")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses =
-                              Just
-                                (Refined
-                                   "slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e")
-                          , with =
-                              Just
-                                (StepWithEnv
-                                   (fromList
-                                      (( Refined "channel-id"
-                                       , Refined "${{ env.SLACK_CHANNEL_ID }}"
-                                       ) :|
-                                         [ ( Refined "payload"
-                                           , Refined
-                                               "{\n  \"text\": \":loudspeaker: *${{ github.actor }}* has deployed *${{ env.SYSTEM_NAME }}* to *${{ env.DESTINATION }}* from *${{ steps.extract_branch.outputs.branch }}* ${{ env.SUCCESS_MESSAGE }}\",\n  \"attachments\": [\n    {\n      \"fallback\": \"Deployment summary\",\n      \"color\": \"00ff00\",\n      \"fields\": [\n        {\n          \"title\": \"What was deployed\",\n          \"value\": ${{ toJSON(env.COMMIT_CHANGES) }},\n          \"short\": false\n        },\n        {\n          \"title\": \"Status\",\n          \"short\": true,\n          \"value\": \"Deployed\"\n        },\n        {\n          \"title\": \"Output\",\n          \"short\": false,\n          \"value\": \"${{ env.SUCCESS_MESSAGE_BODY }}\"\n        }\n      ]\n    }\n  ]\n}\n"
-                                           )
-                                         , ( Refined "update-ts"
-                                           , Refined "${{ steps.slack-deploy.outputs.ts }}"
-                                           )
-                                         ])))
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env =
-                              fromList
-                                [ ( Refined "SLACK_BOT_TOKEN"
-                                  , "${{ secrets.BELLROY_SLACK_TOKEN }}"
-                                  )
-                                ]
-                          , id = Just (StepId (Refined "slack-deploy-failed"))
-                          , name = Just (Refined "Post to Slack if build/deploy fails")
-                          , run = Nothing
-                          , runIf =
-                              Just
-                                (Refined
-                                   "failure() && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master')")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses =
-                              Just
-                                (Refined
-                                   "slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e")
-                          , with =
-                              Just
-                                (StepWithEnv
-                                   (fromList
-                                      (( Refined "channel-id"
-                                       , Refined "${{ env.SLACK_CHANNEL_ID }}"
-                                       ) :|
-                                         [ ( Refined "payload"
-                                           , Refined
-                                               "{ \"text\": \":loudspeaker: *BUILD/DEPLOY FAILURE* of *${{ env.SYSTEM_NAME }}* to *${{ env.DESTINATION }}*\",\n  \"attachments\": [\n    {\n      \"fallback\": \"Deployment summary\",\n      \"color\": \"ff0000\",\n      \"fields\": [\n        {\n          \"title\": \"What was being deployed\",\n          \"value\": ${{ toJSON(env.COMMIT_CHANGES) }},\n          \"short\": false\n        },\n        {\n          \"title\": \"Status\",\n          \"short\": true,\n          \"value\": \"Failed\"\n        },\n        {\n          \"title\": \"Who broke it\",\n          \"value\": \"${{ github.actor }}\"\n        },\n        {\n          \"title\": \"Output\",\n          \"short\": false,\n          \"value\": \"https://github.com/${{ github.repository }}/commit/${{ github.sha }}/checks\"\n        }\n      ]\n    }\n  ]\n}\n"
-                                           )
-                                         , ( Refined "update-ts"
-                                           , Refined "${{ steps.slack-deploy.outputs.ts }}"
-                                           )
-                                         ])))
-                          , workingDirectory = Nothing
-                          }
-                      , Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Nothing
-                          , name = Just (Refined "Add comment to PR")
-                          , run =
-                              Just
-                                (Refined
-                                   "gh pr comment ${{ env.PR_NUMBER }} --body-file /tmp/pr-comment.txt || true")
-                          , runIf = Just (Refined "always() && env.PR_NUMBER != 0")
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses = Nothing
-                          , with = Nothing
-                          , workingDirectory = Just (Refined "${{ env.GITHUB_WORKSPACE }}")
-                          }
-                      ])
-             , strategy = Nothing
-             , timeoutMinutes = Nothing
-             , uses = Nothing
-             , with = fromList []
-             }
-         ) :|
-           [ ( JobId (Refined "validateContent")
-             , Job
-                 { concurrency = Nothing
-                 , container = Nothing
-                 , continueOnError = Nothing
-                 , defaults = Nothing
-                 , env = fromList []
-                 , environment = Nothing
-                 , jobName = Nothing
-                 , needs = Nothing
-                 , outputs = fromList []
-                 , permissions = Nothing
-                 , runIf = Nothing
-                 , runsOn = Just (Refined "ubuntu-20.04")
-                 , secrets = fromList []
-                 , services = fromList []
-                 , steps =
-                     Just
-                       (Step
-                          { continueOnError = False
-                          , env = fromList []
-                          , id = Just (StepId (Refined "checkout_branch"))
-                          , name = Just (Refined "checkout branch")
-                          , run = Nothing
-                          , runIf = Nothing
-                          , shell = Nothing
-                          , timeoutMinutes = Nothing
-                          , uses =
-                              Just (Refined "bellroy/gha-workflows/composite/checkout@master")
-                          , with =
-                              Just
-                                (StepWithEnv
-                                   (fromList
-                                      (( Refined "fetch-depth" , Refined "1" ) :|
-                                         [ ( Refined "path"
-                                           , Refined "${{ env.GITHUB_WORKSPACE }}"
-                                           )
-                                         , ( Refined "token"
-                                           , Refined "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
-                                           )
-                                         ])))
-                          , workingDirectory = Nothing
-                          } :|
-                          [ Step
-                              { continueOnError = False
-                              , env = fromList []
-                              , id = Just (StepId (Refined "extract_branch"))
-                              , name = Just (Refined "Extract branch name")
-                              , run =
-                                  Just
-                                    (Refined
-                                       "echo \"branch=${GITHUB_REF#refs/heads/}\" >>$GITHUB_OUTPUT\n")
-                              , runIf = Nothing
-                              , shell = Just (Bash Nothing)
-                              , timeoutMinutes = Nothing
-                              , uses = Nothing
-                              , with = Nothing
-                              , workingDirectory = Nothing
-                              }
-                          , Step
-                              { continueOnError = False
-                              , env = fromList []
-                              , id = Nothing
-                              , name = Just (Refined "Install and setup nix")
-                              , run = Nothing
-                              , runIf = Nothing
-                              , shell = Nothing
-                              , timeoutMinutes = Nothing
-                              , uses =
-                                  Just
-                                    (Refined "bellroy/gha-workflows/composite/install-nix@master")
-                              , with =
-                                  Just
-                                    (StepWithEnv
-                                       (fromList
-                                          (( Refined "bellroy-nix-cache-access"
-                                           , Refined "none"
-                                           ) :|
-                                             [])))
-                              , workingDirectory = Nothing
-                              }
-                          , Step
-                              { continueOnError = False
-                              , env = fromList []
-                              , id = Just (StepId (Refined "fetch_gitapult"))
-                              , name = Just (Refined "Fetch gitapult")
-                              , run = Nothing
-                              , runIf = Nothing
-                              , shell = Nothing
-                              , timeoutMinutes = Nothing
-                              , uses =
-                                  Just (Refined "bellroy/gha-workflows/composite/get-tool@master")
-                              , with =
-                                  Just
-                                    (StepWithEnv
-                                       (fromList
-                                          (( Refined "token"
-                                           , Refined "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
-                                           ) :|
-                                             [ ( Refined "tool-name" , Refined "gitapult" )
-                                             , ( Refined "tool-version" , Refined "latest" )
-                                             ])))
-                              , workingDirectory = Nothing
-                              }
-                          , Step
-                              { continueOnError = False
-                              , env = fromList []
-                              , id = Just (StepId (Refined "fetch_powerful-owl"))
-                              , name = Just (Refined "Fetch powerful-owl")
-                              , run = Nothing
-                              , runIf = Nothing
-                              , shell = Nothing
-                              , timeoutMinutes = Nothing
-                              , uses =
-                                  Just (Refined "bellroy/gha-workflows/composite/get-tool@master")
-                              , with =
-                                  Just
-                                    (StepWithEnv
-                                       (fromList
-                                          (( Refined "token"
-                                           , Refined "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
-                                           ) :|
-                                             [ ( Refined "tool-name" , Refined "powerful-owl" )
-                                             , ( Refined "tool-version" , Refined "latest" )
-                                             ])))
-                              , workingDirectory = Nothing
-                              }
-                          , Step
-                              { continueOnError = False
-                              , env = fromList []
-                              , id = Nothing
-                              , name = Just (Refined "Get Pull Request number")
-                              , run =
-                                  Just
-                                    (Refined
-                                       "echo \"PR_NUMBER=$(gh pr view --json number -q .number)\" >> $GITHUB_ENV\n")
-                              , runIf = Nothing
-                              , shell = Nothing
-                              , timeoutMinutes = Nothing
-                              , uses = Nothing
-                              , with = Nothing
-                              , workingDirectory = Just (Refined "${{ env.GITHUB_WORKSPACE }}")
-                              }
-                          , Step
-                              { continueOnError = False
-                              , env = fromList []
-                              , id = Nothing
-                              , name = Just (Refined "Ensure tmp directory exists")
-                              , run = Just (Refined "mkdir -p tmp")
-                              , runIf = Nothing
-                              , shell = Nothing
-                              , timeoutMinutes = Nothing
-                              , uses = Nothing
-                              , with = Nothing
-                              , workingDirectory = Just (Refined "${{ env.GITHUB_WORKSPACE }}")
-                              }
-                          , Step
-                              { continueOnError = False
-                              , env = fromList []
-                              , id = Nothing
-                              , name = Just (Refined "Validate with gitapult")
-                              , run =
-                                  Just
-                                    (Refined
-                                       "./gitapult validate --git_root \"$GITHUB_WORKSPACE\"\n")
-                              , runIf = Nothing
-                              , shell = Nothing
-                              , timeoutMinutes = Nothing
-                              , uses = Nothing
-                              , with = Nothing
-                              , workingDirectory = Nothing
-                              }
-                          , Step
-                              { continueOnError = False
-                              , env = fromList []
-                              , id = Nothing
-                              , name = Just (Refined "Validate content with powerful-owl")
-                              , run =
-                                  Just
-                                    (Refined
-                                       "for CONTENT_DIR in feeds products\ndo\n  if [[ \"$PR_NUMBER\" ]]\n  then\n    ./powerful-owl validate --markdown --content_path \"$GITHUB_WORKSPACE/$CONTENT_DIR\" &>>/tmp/pr-comment.txt\n  else\n    ./powerful-owl validate --content_path \"$GITHUB_WORKSPACE/$CONTENT_DIR\"\n  fi\ndone\n")
-                              , runIf = Nothing
-                              , shell = Nothing
-                              , timeoutMinutes = Nothing
-                              , uses = Nothing
-                              , with = Nothing
-                              , workingDirectory = Nothing
-                              }
-                          , Step
-                              { continueOnError = False
-                              , env = fromList []
-                              , id = Nothing
-                              , name = Just (Refined "Add comment to PR")
-                              , run =
-                                  Just
-                                    (Refined
-                                       "gh pr comment ${{ env.PR_NUMBER }} --body-file /tmp/pr-comment.txt || true")
-                              , runIf = Just (Refined "always() && env.PR_NUMBER != 0")
-                              , shell = Nothing
-                              , timeoutMinutes = Nothing
-                              , uses = Nothing
-                              , with = Nothing
-                              , workingDirectory = Just (Refined "${{ env.GITHUB_WORKSPACE }}")
-                              }
-                          , Step
-                              { continueOnError = False
-                              , env = fromList []
-                              , id = Nothing
-                              , name = Just (Refined "Post to slack if build fails")
-                              , run = Nothing
-                              , runIf =
-                                  Just
-                                    (Refined
-                                       "failure() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable')")
-                              , shell = Nothing
-                              , timeoutMinutes = Nothing
-                              , uses =
-                                  Just
-                                    (Refined "bellroy/gha-workflows/composite/slack-update@master")
-                              , with =
-                                  Just
-                                    (StepWithEnv
-                                       (fromList
-                                          (( Refined "branch"
-                                           , Refined "${{ steps.checkout_branch.outputs.branch }}"
-                                           ) :|
-                                             [ ( Refined "channel-id"
-                                               , Refined "${{ env.SLACK_CHANNEL_ID }}"
-                                               )
-                                             , ( Refined "message-type" , Refined "build-fail" )
-                                             , ( Refined "show-authors" , Refined "true" )
-                                             , ( Refined "slack-bot-token"
-                                               , Refined "${{ secrets.BELLROY_SLACK_TOKEN }}"
-                                               )
-                                             ])))
-                              , workingDirectory = Nothing
-                              }
-                          ])
-                 , strategy = Nothing
-                 , timeoutMinutes = Just 30
-                 , uses = Nothing
-                 , with = fromList []
-                 }
-             )
-           ])
+        [ ( JobId "build"
+          , Job
+              { concurrency = Nothing
+              , container = Nothing
+              , continueOnError = Nothing
+              , defaults = Nothing
+              , env = fromList []
+              , environment = Nothing
+              , jobName = Nothing
+              , needs = Just (JobId "validateContent" :| [])
+              , outputs = fromList []
+              , permissions = Nothing
+              , runIf = Nothing
+              , runsOn = Just "ubuntu-20.04"
+              , secrets = fromList []
+              , services = fromList []
+              , steps =
+                  Just
+                    (Step
+                       { continueOnError = False
+                       , env = fromList []
+                       , name = Just "checkout branch"
+                       , run = Nothing
+                       , runIf =
+                           Just
+                             "github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable'"
+                       , shell = Nothing
+                       , stepId = Nothing
+                       , timeoutMinutes = Nothing
+                       , uses = Just "bellroy/gha-workflows/composite/checkout@master"
+                       , with =
+                           Just
+                             (StepWithEnv
+                                (fromList
+                                   [ ( "fetch-depth" , "0" )
+                                   , ( "token" , "${{ env.GH_TOKEN }}" )
+                                   ]))
+                       , workingDirectory = Nothing
+                       } :|
+                       [ Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "checkout branch"
+                           , run = Nothing
+                           , runIf =
+                               Just
+                                 "github.ref != 'refs/heads/master' && github.ref != 'refs/heads/stable'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Just "bellroy/gha-workflows/composite/checkout@master"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList
+                                       [ ( "fetch-depth" , "1" )
+                                       , ( "token" , "${{ env.GH_TOKEN }}" )
+                                       ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Extract branch name"
+                           , run =
+                               Just
+                                 "echo \"branch=${GITHUB_REF#refs/heads/}\" >> $GITHUB_OUTPUT\n"
+                           , runIf = Nothing
+                           , shell = Just (Bash Nothing)
+                           , stepId = Just (StepId "extract_branch")
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Set env variables for staging"
+                           , run =
+                               Just
+                                 "echo \"DESTINATION=Staging Environment\" >> $GITHUB_ENV\necho \"ENVIRONMENT=staging\" >> $GITHUB_ENV\n"
+                           , runIf = Just "github.ref == 'refs/heads/master'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Set env variables for production"
+                           , run =
+                               Just
+                                 "echo \"DESTINATION=Production Environment\" >> $GITHUB_ENV\necho \"ENVIRONMENT=production\" >> $GITHUB_ENV\n"
+                           , runIf = Just "github.ref == 'refs/heads/stable'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Install and setup nix"
+                           , run = Nothing
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Just "bellroy/gha-workflows/composite/install-nix@master"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList
+                                       [ ( "bellroy-nix-cache-access" , "none" )
+                                       , ( "nix-config-access-tokens"
+                                         , "github.com=${{ secrets.READ_HASKELL_REPO_PAT }}"
+                                         )
+                                       ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Install script packages"
+                           , run =
+                               Just "sudo apt-get update\nsudo apt-get install -y parallel\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Get Pull Request number"
+                           , run =
+                               Just
+                                 "echo \"PR_NUMBER=$(gh pr view --json number -q .number)\" >> $GITHUB_ENV\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Just "${{ env.GITHUB_WORKSPACE }}"
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Get changed files"
+                           , run = Nothing
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Just (StepId "changed-files")
+                           , timeoutMinutes = Nothing
+                           , uses =
+                               Just
+                                 "tj-actions/changed-files@48d8f15b2aaa3d255ca5af3eba4870f807ce6b3c"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList [ ( "path" , "${{ env.GIT_REPOSITORY_PATH }}" ) ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Check for CSV changes"
+                           , run =
+                               Just
+                                 "echo \"csv_changed=${{ steps.changed-files.outputs.all_changed_files == '' && '0' || contains(steps.changed-files.outputs.all_changed_files, '.csv') && '1' || '0' }}\" >> $GITHUB_OUTPUT"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Just (StepId "check_changes")
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name =
+                               Just
+                                 "Check that all configuration CSV files are sorted alphabetically"
+                           , run =
+                               Just
+                                 "set +e\nIFS= output=$(./scripts/check_configuration_csvs_sorted 2>&1)\nstatus=$?\n\nif (($status)); then\n  echo \"Configuration CSV files are not sorted:\" >>/tmp/pr-comment.txt\n  echo \"\" >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  echo $output >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  exit $status\nelse\n  echo \"All configuration CSV files are sorted.\"\nfi\n"
+                           , runIf = Just "steps.check_changes.outputs.csv_changed == '1'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Fetch byproduct"
+                           , run = Nothing
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Just (StepId "fetch_byproduct")
+                           , timeoutMinutes = Nothing
+                           , uses = Just "bellroy/gha-workflows/composite/get-tool@master"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList
+                                       [ ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
+                                       , ( "tool-name" , "byproduct" )
+                                       , ( "tool-version" , "latest" )
+                                       ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Fetch gitapult"
+                           , run = Nothing
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Just (StepId "fetch_gitapult")
+                           , timeoutMinutes = Nothing
+                           , uses = Just "bellroy/gha-workflows/composite/get-tool@master"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList
+                                       [ ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
+                                       , ( "tool-name" , "gitapult" )
+                                       , ( "tool-version" , "latest" )
+                                       ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Fetch config-rules-cli"
+                           , run = Nothing
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Just (StepId "fetch_config-rules-cli")
+                           , timeoutMinutes = Nothing
+                           , uses = Just "bellroy/gha-workflows/composite/get-tool@master"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList
+                                       [ ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
+                                       , ( "tool-name" , "config-rules-cli" )
+                                       , ( "tool-version" , "latest" )
+                                       ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Fetch powerful-owl"
+                           , run = Nothing
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Just (StepId "fetch_powerful-owl")
+                           , timeoutMinutes = Nothing
+                           , uses = Just "bellroy/gha-workflows/composite/get-tool@master"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList
+                                       [ ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
+                                       , ( "tool-name" , "powerful-owl" )
+                                       , ( "tool-version" , "latest" )
+                                       ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Run byproduct once"
+                           , run =
+                               Just
+                                 "find products/autogenerated/ -type f -name '*.json' | grep -v './\\.' | xargs rm\n./byproduct execute --once --in products/configuration --out products/autogenerated\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Configure git"
+                           , run =
+                               Just
+                                 "git config --global user.name \"${{ github.actor }}\"\ngit config --global user.email \"${{ github.actor }}@users.noreply.github.com\"\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Update autogenerated product files"
+                           , run =
+                               Just
+                                 "git add products/autogenerated\nif git commit -m \"Update autogenerated product files\"; then\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nelse\n  echo \"No changes detected\"\nfi\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Update products autogenerated content blocks"
+                           , run =
+                               Just
+                                 "scripts/update_products_autogenerated_content_blocks\ngit add products/content\n\nif git commit -m \"Update autogenerated products content blocks\"; then\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nelse\n  echo \"No changes detected\"\nfi\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Set merge base"
+                           , run =
+                               Just
+                                 "if [ \"${{ github.ref }}\" = \"refs/heads/master\" ]; then\n  echo \"MERGE_BASE=origin/stable\" >> $GITHUB_ENV\nelse\n  echo \"MERGE_BASE=$(git show-branch --merge-base origin/master ${{ steps.extract_branch.outputs.branch }})\" >> $GITHUB_ENV\nfi\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Write byproduct validate output to env variable"
+                           , run =
+                               Just
+                                 "set +e\nIFS= output=$(./gitapult changeset --git_root \"$GITHUB_WORKSPACE\" --from \"${{ env.MERGE_BASE }}\" | ./byproduct validate --markdown 2>&1)\nstatus=$?\n\nif (($status)); then\n  echo $output >>/tmp/pr-comment.txt\n  exit $status\nelse\n  echo \"Byproduct validation succeeded.\"\nfi\n"
+                           , runIf = Just "env.PR_NUMBER != 0"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Update feed autogenerated content blocks"
+                           , run =
+                               Just
+                                 "nix run .#update_feeds_autogenerated_content_blocks\ngit add feeds/content\n\nif git commit -m \"Update autogenerated feed content blocks\"; then\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nelse\n  echo \"No changes detected\"\nfi\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Update feed autogenerated rendering data"
+                           , run =
+                               Just
+                                 "POWERFUL_OWL_COMMAND=$GITHUB_WORKSPACE/powerful-owl POWERFUL_OWL_FOLDER=./feeds/ ./scripts/generate-rendering-data\ngit add ./feeds/page_rendering_data\ngit add ./feeds/rendering_data\n\nif git commit -m \"Update feed autogenerated rendering data\"; then\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nelse\n  echo \"No changes detected\"\nfi\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Just "${{ env.GIT_REPOSITORY_PATH }}"
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Update feed golden tests"
+                           , run =
+                               Just
+                                 "scripts/update_feeds_golden_tests\ngit add feeds/tests/golden\n\nif git commit -m \"Update autogenerated feeds golden test outputs\"; then\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nelse\n  echo \"No changes detected\"\nfi\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Update autogenerated shipping configuration files"
+                           , run =
+                               Just
+                                 "set +e\nIFS= output=$(./config-rules-cli shipping-options-transform --input-csv-dir shipping/configuration --output-json-dir shipping/autogenerated)\nstatus=$?\n\nif (($status)); then\n  echo \"Failed to transform shipping data\" >>/tmp/pr-comment.txt\n  echo \"\" >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  echo $output >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  exit $status\nelse\n  git add shipping/autogenerated\n  if git commit -m \"Update autogenerated shipping configuration files\"; then\n    echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\n  else\n    echo \"No changes detected\"\n  fi\nfi\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Generate new shipping tests"
+                           , run =
+                               Just
+                                 "SHIPPING_TEST_DIRECTORY=shipping/tests\n  find $SHIPPING_TEST_DIRECTORY -type f -name '*.result.json' -exec rm {} \\;\n    ./config-rules-cli -- shipping-options-check --repo-dir .\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Commit new shipping tests"
+                           , run =
+                               Just
+                                 "if [ $(git status shipping/tests --porcelain=v1 | wc -l) -gt 0 ]\nthen\n  git add shipping/tests\n  git commit -m \"Update shipping tests\"\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nfi\n"
+                           , runIf =
+                               Just
+                                 "env.PR_NUMBER != 0 && github.ref != 'refs/heads/stable' && github.ref != 'refs/heads/master'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Update autogenerated promotion configuration files"
+                           , run =
+                               Just
+                                 "set +e\nIFS= output=$(./config-rules-cli promotion-transform --input-csv-dir promotions/configuration --output-json-dir promotions/autogenerated)\nstatus=$?\n\nif (($status)); then\n  echo \"Failed to transform promotions data\" >>/tmp/pr-comment.txt\n  echo \"\" >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  echo $output >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  exit $status\nelse\n  git add promotions/autogenerated\n  if git commit -m \"Update autogenerated promotions configuration files\"; then\n    echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\n  else\n    echo \"No changes detected\"\n  fi\nfi\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Generate new promotion rule tests"
+                           , run =
+                               Just
+                                 "PROMOTIONS_TEST_DIRECTORY=promotions/tests\n  find $PROMOTIONS_TEST_DIRECTORY -type f -name '*.result.json' -exec rm {} \\;\n    ./config-rules-cli -- promotion-check --repo-dir .\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Commit new promotion tests"
+                           , run =
+                               Just
+                                 "if [ $(git status promotions/tests --porcelain=v1 | wc -l) -gt 0 ]\nthen\n  git add promotions/tests\n  git commit -m \"Update promotion tests\"\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nfi\n"
+                           , runIf =
+                               Just
+                                 "env.PR_NUMBER != 0 && github.ref != 'refs/heads/stable' && github.ref != 'refs/heads/master'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name =
+                               Just "Push any new commits and exit workflow if commits pushed"
+                           , run =
+                               Just
+                                 "git push --set-upstream origin HEAD\n\ngh run cancel ${{ github.run_id }}\ngh run watch ${{ github.run_id }}\n"
+                           , runIf = Just "env.GENERATED_ANOTHER_COMMIT == 'true'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Get current time"
+                           , run =
+                               Just
+                                 "echo \"timestamp=$(date -u +\"%y%m%d%H%M%S\")\" >> $GITHUB_OUTPUT"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Just (StepId "current-time")
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Set changes variable"
+                           , run =
+                               Just
+                                 "echo \"COMMIT_CHANGES<<EOF\" >> $GITHUB_ENV\necho \"$(git log --oneline --format=\\\"%s\\\" $(git tag -l [0-9]*_${{ env.ENVIRONMENT }} | tail -n 1)..${{ steps.extract_branch.outputs.branch }} | grep -v 'Merge pull request' | grep -v \"Merge branch 'master' into\" | sed -e 's/^\"//' -e 's/\"$//' | cat)\" >> $GITHUB_ENV\necho \"EOF\" >> $GITHUB_ENV\n"
+                           , runIf =
+                               Just
+                                 "github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master'"
+                           , shell = Just (Bash Nothing)
+                           , stepId = Just (StepId "extract_changes")
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Just "${{ env.GITHUB_WORKSPACE }}"
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env =
+                               fromList
+                                 [ ( "SLACK_BOT_TOKEN" , "${{ secrets.BELLROY_SLACK_TOKEN }}" ) ]
+                           , name = Just "Slack - Notifications - Post to slack"
+                           , run = Nothing
+                           , runIf =
+                               Just
+                                 "github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master'"
+                           , shell = Nothing
+                           , stepId = Just (StepId "slack-deploy")
+                           , timeoutMinutes = Nothing
+                           , uses =
+                               Just
+                                 "slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList
+                                       [ ( "channel-id" , "${{ env.SLACK_CHANNEL_ID }}" )
+                                       , ( "payload"
+                                         , "{\n  \"text\": \":loudspeaker: *${{ github.actor }}* is deploying *${{ env.SYSTEM_NAME }}* to *${{ env.DESTINATION }}* from *${{ steps.extract_branch.outputs.branch }}*\",\n  \"attachments\": [\n    {\n      \"fallback\": \"Deployment summary\",\n      \"color\": \"ffd966\",\n      \"fields\": [\n        {\n          \"title\": \"What is being deployed\",\n          \"value\": ${{ toJSON(env.COMMIT_CHANGES) }},\n          \"short\": false\n        },\n        {\n          \"title\": \"Status\",\n          \"short\": true,\n          \"value\": \"In Progress\"\n        }\n      ]\n    }\n  ]\n}\n"
+                                         )
+                                       ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Push content to staging"
+                           , run =
+                               Just
+                                 "set -e\n# XXX: Gitapult cannot distinguish datasets, so we push all data to\n# both endpoints and allow the server to decide what to do.\n# Kafka Webhooks accepts all datasets at once\n./gitapult run \\\n  --git_root \"$GITHUB_WORKSPACE\" \\\n  --authorization_token \"$KW_STAGING_API_KEY\" \\\n  --changeset_url \"$KW_STAGING_BASE_URL/gitapult/configuration/records\" \\\n  --revision_url \"$KW_STAGING_BASE_URL/gitapult/configuration/revision\" \\\n  --api_key \\\n  --compress \\\n  --max-payload-bytes 3000000\n\n# XXX: V3 doesn't care about rendering data, but it is too large to send.\n# As at 2024-02-14 gitapult does not support selecting which data to send.\ngit -C \"$GIT_REPOSITORY_PATH\" rm feeds/rendering_data/.gitapult.json\n./gitapult run \\\n  --git_root \"$GITHUB_WORKSPACE\" \\\n  --authorization_token \"$SF_STAGING_API_KEY\" \\\n  --changeset_url \"$SF_STAGING_BASE_URL/api/v1/configuration/shipping\" \\\n  --revision_url \"$SF_STAGING_BASE_URL/api/v1/configuration/shipping/revisions\" && \\\ngit -C \"$GIT_REPOSITORY_PATH\" restore --staged feeds/rendering_data/.gitapult.json\ngit -C \"$GIT_REPOSITORY_PATH\" restore feeds/rendering_data/.gitapult.json\n"
+                           , runIf = Just "github.ref == 'refs/heads/master'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Tag published staging content"
+                           , run =
+                               Just
+                                 "git tag \"${{ join(steps.current-time.outputs.*, '\\n') }}_staging\" && git push --tags\n"
+                           , runIf = Just "success() && github.ref == 'refs/heads/master'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Open PR to stable"
+                           , run =
+                               Just
+                                 "curl -X POST -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls -d '{\"head\":\"master\",\"base\":\"stable\",\"title\":\"Merge branch master into stable\",\"body\":\"This PR was automatically generated by CI.\"}'\nPR_URL=$(curl -sX GET -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls\\?head\\=bellroy:master\\&base\\=stable | jq -r '.[0].html_url | select(length>0)')\necho \"PR_URL=$PR_URL\" >> $GITHUB_ENV\n"
+                           , runIf = Just "github.ref == 'refs/heads/master'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = True
+                           , env = fromList []
+                           , name = Just "Set assignee"
+                           , run =
+                               Just
+                                 "PR_RESPONSE=$(curl -sX GET -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls\\?head\\=bellroy:master\\&base\\=stable | jq -r '.[0]')\nPR_NUM=$(echo \"$PR_RESPONSE\" | jq -r \".number\")\nPR_ASSIGNEE=$(echo \"$PR_RESPONSE\" | jq -r \".assignee\")\nCOMMITS_RESPONSE=$(curl -sX GET -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUM/commits)\nFIRST_COMMITTER=$(curl -sX GET -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUM/commits | jq -r '. | sort_by(.commit.author.date) | .[0] | .author.login')\n# special case for squashed PRs created by trike-deploy e.g. gha-workflows\nif [[ \"$FIRST_COMMITTER\" == \"trike-deploy\" ]]; then\n    FIRST_COMMITTER=$(echo \"$COMMITS_RESPONSE\" | jq -r '. | sort_by(.commit.author.date) | .[0]' | sed -En \"s/.*Co-authored-by: (.*) <.*@.*>\\\",/\\1/p\")\nfi\nif [[ \"$PR_ASSIGNEE\" == \"null\" ]]; then\n    curl -sX POST -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUM/assignees -d \"{\\\"assignees\\\":[\\\"$FIRST_COMMITTER\\\"]}\"\nfi\n"
+                           , runIf = Just "github.ref == 'refs/heads/master'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Push content to production"
+                           , run =
+                               Just
+                                 "set -e\n# XXX: Gitapult cannot distinguish datasets, so we push all data to\n# both endpoints and allow the server to decide what to do.\n# Kafka Webhooks accepts all datasets at once\n./gitapult run \\\n  --git_root \"$GITHUB_WORKSPACE\" \\\n  --authorization_token \"$KW_PRODUCTION_API_KEY\" \\\n  --changeset_url \"$KW_PRODUCTION_BASE_URL/gitapult/configuration/records\" \\\n  --revision_url \"$KW_PRODUCTION_BASE_URL/gitapult/configuration/revision\" \\\n  --api_key \\\n  --compress \\\n  --max-payload-bytes 3000000\n\n# XXX: V3 doesn't care about rendering data, but it is too large to send.\n# As at 2024-02-14 gitapult does not support selecting which data to send.\ngit -C \"$GIT_REPOSITORY_PATH\" rm feeds/rendering_data/.gitapult.json\n./gitapult run \\\n  --git_root \"$GITHUB_WORKSPACE\" \\\n  --authorization_token \"$SF_PRODUCTION_API_KEY\" \\\n  --changeset_url \"$SF_PRODUCTION_BASE_URL/api/v1/configuration/shipping\" \\\n  --revision_url \"$SF_PRODUCTION_BASE_URL/api/v1/configuration/shipping/revisions\" && \\\ngit -C \"$GIT_REPOSITORY_PATH\" restore --staged feeds/rendering_data/.gitapult.json\ngit -C \"$GIT_REPOSITORY_PATH\" restore feeds/rendering_data/.gitapult.json\n"
+                           , runIf = Just "github.ref == 'refs/heads/stable'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Tag published production content"
+                           , run =
+                               Just
+                                 "git tag \"${{ join(steps.current-time.outputs.*, '\\n') }}_production\" && git push --tags\n"
+                           , runIf = Just "success() && github.ref == 'refs/heads/stable'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Set success message variable for staging"
+                           , run =
+                               Just
+                                 "echo \"SUCCESS_MESSAGE=:tada: \\nA PR has been opened against the stable branch: ${{ env.PR_URL }}\" >> $GITHUB_ENV\necho \"SUCCESS_MESSAGE_BODY=https://github.com/${{ github.repository }}/commit/${{ github.sha }}/checks\\n\\n*PR for Production:* ${{ env.PR_URL }}\" >> $GITHUB_ENV\n"
+                           , runIf = Just "github.ref == 'refs/heads/master'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Set success message variable for production"
+                           , run =
+                               Just
+                                 "echo \"SUCCESS_MESSAGE=:tada:\" >> $GITHUB_ENV\necho \"SUCCESS_MESSAGE_BODY=https://github.com/${{ github.repository }}/commit/${{ github.sha }}/checks\" >> $GITHUB_ENV\n"
+                           , runIf = Just "github.ref == 'refs/heads/stable'"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env =
+                               fromList
+                                 [ ( "SLACK_BOT_TOKEN" , "${{ secrets.BELLROY_SLACK_TOKEN }}" ) ]
+                           , name = Just "Post to Slack if published successfully"
+                           , run = Nothing
+                           , runIf =
+                               Just
+                                 "success() && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master')"
+                           , shell = Nothing
+                           , stepId = Just (StepId "slack-deploy-success")
+                           , timeoutMinutes = Nothing
+                           , uses =
+                               Just
+                                 "slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList
+                                       [ ( "channel-id" , "${{ env.SLACK_CHANNEL_ID }}" )
+                                       , ( "payload"
+                                         , "{\n  \"text\": \":loudspeaker: *${{ github.actor }}* has deployed *${{ env.SYSTEM_NAME }}* to *${{ env.DESTINATION }}* from *${{ steps.extract_branch.outputs.branch }}* ${{ env.SUCCESS_MESSAGE }}\",\n  \"attachments\": [\n    {\n      \"fallback\": \"Deployment summary\",\n      \"color\": \"00ff00\",\n      \"fields\": [\n        {\n          \"title\": \"What was deployed\",\n          \"value\": ${{ toJSON(env.COMMIT_CHANGES) }},\n          \"short\": false\n        },\n        {\n          \"title\": \"Status\",\n          \"short\": true,\n          \"value\": \"Deployed\"\n        },\n        {\n          \"title\": \"Output\",\n          \"short\": false,\n          \"value\": \"${{ env.SUCCESS_MESSAGE_BODY }}\"\n        }\n      ]\n    }\n  ]\n}\n"
+                                         )
+                                       , ( "update-ts" , "${{ steps.slack-deploy.outputs.ts }}" )
+                                       ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env =
+                               fromList
+                                 [ ( "SLACK_BOT_TOKEN" , "${{ secrets.BELLROY_SLACK_TOKEN }}" ) ]
+                           , name = Just "Post to Slack if build/deploy fails"
+                           , run = Nothing
+                           , runIf =
+                               Just
+                                 "failure() && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master')"
+                           , shell = Nothing
+                           , stepId = Just (StepId "slack-deploy-failed")
+                           , timeoutMinutes = Nothing
+                           , uses =
+                               Just
+                                 "slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList
+                                       [ ( "channel-id" , "${{ env.SLACK_CHANNEL_ID }}" )
+                                       , ( "payload"
+                                         , "{ \"text\": \":loudspeaker: *BUILD/DEPLOY FAILURE* of *${{ env.SYSTEM_NAME }}* to *${{ env.DESTINATION }}*\",\n  \"attachments\": [\n    {\n      \"fallback\": \"Deployment summary\",\n      \"color\": \"ff0000\",\n      \"fields\": [\n        {\n          \"title\": \"What was being deployed\",\n          \"value\": ${{ toJSON(env.COMMIT_CHANGES) }},\n          \"short\": false\n        },\n        {\n          \"title\": \"Status\",\n          \"short\": true,\n          \"value\": \"Failed\"\n        },\n        {\n          \"title\": \"Who broke it\",\n          \"value\": \"${{ github.actor }}\"\n        },\n        {\n          \"title\": \"Output\",\n          \"short\": false,\n          \"value\": \"https://github.com/${{ github.repository }}/commit/${{ github.sha }}/checks\"\n        }\n      ]\n    }\n  ]\n}\n"
+                                         )
+                                       , ( "update-ts" , "${{ steps.slack-deploy.outputs.ts }}" )
+                                       ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Add comment to PR"
+                           , run =
+                               Just
+                                 "gh pr comment ${{ env.PR_NUMBER }} --body-file /tmp/pr-comment.txt || true"
+                           , runIf = Just "always() && env.PR_NUMBER != 0"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Just "${{ env.GITHUB_WORKSPACE }}"
+                           }
+                       ])
+              , strategy = Nothing
+              , timeoutMinutes = Nothing
+              , uses = Nothing
+              , with = fromList []
+              }
+          )
+        , ( JobId "validateContent"
+          , Job
+              { concurrency = Nothing
+              , container = Nothing
+              , continueOnError = Nothing
+              , defaults = Nothing
+              , env = fromList []
+              , environment = Nothing
+              , jobName = Nothing
+              , needs = Nothing
+              , outputs = fromList []
+              , permissions = Nothing
+              , runIf = Nothing
+              , runsOn = Just "ubuntu-20.04"
+              , secrets = fromList []
+              , services = fromList []
+              , steps =
+                  Just
+                    (Step
+                       { continueOnError = False
+                       , env = fromList []
+                       , name = Just "checkout branch"
+                       , run = Nothing
+                       , runIf = Nothing
+                       , shell = Nothing
+                       , stepId = Just (StepId "checkout_branch")
+                       , timeoutMinutes = Nothing
+                       , uses = Just "bellroy/gha-workflows/composite/checkout@master"
+                       , with =
+                           Just
+                             (StepWithEnv
+                                (fromList
+                                   [ ( "fetch-depth" , "1" )
+                                   , ( "path" , "${{ env.GITHUB_WORKSPACE }}" )
+                                   , ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
+                                   ]))
+                       , workingDirectory = Nothing
+                       } :|
+                       [ Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Extract branch name"
+                           , run =
+                               Just "echo \"branch=${GITHUB_REF#refs/heads/}\" >>$GITHUB_OUTPUT\n"
+                           , runIf = Nothing
+                           , shell = Just (Bash Nothing)
+                           , stepId = Just (StepId "extract_branch")
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Install and setup nix"
+                           , run = Nothing
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Just "bellroy/gha-workflows/composite/install-nix@master"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList [ ( "bellroy-nix-cache-access" , "none" ) ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Fetch gitapult"
+                           , run = Nothing
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Just (StepId "fetch_gitapult")
+                           , timeoutMinutes = Nothing
+                           , uses = Just "bellroy/gha-workflows/composite/get-tool@master"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList
+                                       [ ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
+                                       , ( "tool-name" , "gitapult" )
+                                       , ( "tool-version" , "latest" )
+                                       ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Fetch powerful-owl"
+                           , run = Nothing
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Just (StepId "fetch_powerful-owl")
+                           , timeoutMinutes = Nothing
+                           , uses = Just "bellroy/gha-workflows/composite/get-tool@master"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList
+                                       [ ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
+                                       , ( "tool-name" , "powerful-owl" )
+                                       , ( "tool-version" , "latest" )
+                                       ]))
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Get Pull Request number"
+                           , run =
+                               Just
+                                 "echo \"PR_NUMBER=$(gh pr view --json number -q .number)\" >> $GITHUB_ENV\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Just "${{ env.GITHUB_WORKSPACE }}"
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Ensure tmp directory exists"
+                           , run = Just "mkdir -p tmp"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Just "${{ env.GITHUB_WORKSPACE }}"
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Validate with gitapult"
+                           , run =
+                               Just "./gitapult validate --git_root \"$GITHUB_WORKSPACE\"\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Validate content with powerful-owl"
+                           , run =
+                               Just
+                                 "for CONTENT_DIR in feeds products\ndo\n  if [[ \"$PR_NUMBER\" ]]\n  then\n    ./powerful-owl validate --markdown --content_path \"$GITHUB_WORKSPACE/$CONTENT_DIR\" &>>/tmp/pr-comment.txt\n  else\n    ./powerful-owl validate --content_path \"$GITHUB_WORKSPACE/$CONTENT_DIR\"\n  fi\ndone\n"
+                           , runIf = Nothing
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Nothing
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Add comment to PR"
+                           , run =
+                               Just
+                                 "gh pr comment ${{ env.PR_NUMBER }} --body-file /tmp/pr-comment.txt || true"
+                           , runIf = Just "always() && env.PR_NUMBER != 0"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Nothing
+                           , with = Nothing
+                           , workingDirectory = Just "${{ env.GITHUB_WORKSPACE }}"
+                           }
+                       , Step
+                           { continueOnError = False
+                           , env = fromList []
+                           , name = Just "Post to slack if build fails"
+                           , run = Nothing
+                           , runIf =
+                               Just
+                                 "failure() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable')"
+                           , shell = Nothing
+                           , stepId = Nothing
+                           , timeoutMinutes = Nothing
+                           , uses = Just "bellroy/gha-workflows/composite/slack-update@master"
+                           , with =
+                               Just
+                                 (StepWithEnv
+                                    (fromList
+                                       [ ( "branch"
+                                         , "${{ steps.checkout_branch.outputs.branch }}"
+                                         )
+                                       , ( "channel-id" , "${{ env.SLACK_CHANNEL_ID }}" )
+                                       , ( "message-type" , "build-fail" )
+                                       , ( "show-authors" , "true" )
+                                       , ( "slack-bot-token"
+                                         , "${{ secrets.BELLROY_SLACK_TOKEN }}"
+                                         )
+                                       ]))
+                           , workingDirectory = Nothing
+                           }
+                       ])
+              , strategy = Nothing
+              , timeoutMinutes = Just 30
+              , uses = Nothing
+              , with = fromList []
+              }
+          )
+        ]
   , on =
       fromList
-        (PushTrigger
-           PushTriggerAttributes
-             { pushBranches = Nothing
-             , pushBranchesIgnore =
-                 Just
-                   (Refined "refs/tags/*_staging" :|
-                      [ Refined "refs/tags/*_production" ])
-             , pushPaths = Nothing
-             , pushPathsIgnore = Nothing
-             , pushTags = Nothing
-             } :|
-           [])
+        [ PushTrigger
+            PushTriggerAttributes
+              { pushBranches = Nothing
+              , pushBranchesIgnore =
+                  Just ("refs/tags/*_staging" :| [ "refs/tags/*_production" ])
+              , pushPaths = Nothing
+              , pushPathsIgnore = Nothing
+              , pushTags = Nothing
+              }
+        ]
   , permissions = Nothing
   , runName = Nothing
-  , workflowName = Just (Refined "Publish")
+  , workflowName = Just "Publish"
   }

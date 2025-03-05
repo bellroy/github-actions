@@ -81,6 +81,7 @@ test-suite spec
   other-modules:      Language.Github.Actions.WorkflowTest
   build-tool-depends: tasty-discover:tasty-discover ^>=5.0.0
   build-depends:
+    , bytestring          ^>=0.11
     , filepath            ^>=1.4.2.2
     , github-actions
     , pretty-show         ^>=1.10
