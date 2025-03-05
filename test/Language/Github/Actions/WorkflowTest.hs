@@ -22,32 +22,33 @@ import Text.Show.Pretty (ppShow)
 
 test_goldenWorkflowFromYaml :: IO TestTree
 test_goldenWorkflowFromYaml = do
-  goldenYamlFiles <-
-    filter ((reverse ".golden.yml" `isPrefixOf`) . reverse)
+  testYamlFiles <-
+    filter (not . (reverse ".golden.yml" `isPrefixOf`) . reverse)
       <$> findByExtension [".yml"] "test/golden"
   pure $
     testGroup
       "Yaml Roundtrip"
-      [ runGoldenVsToYamlFileTest goldenYamlFilePath
-        | goldenYamlFilePath <- goldenYamlFiles
+      [ runGoldenVsToYamlFileTest testYamlFilePath
+        | testYamlFilePath <- testYamlFiles
       ]
   where
-    runGoldenVsToYamlFileTest goldenYamlFilePath =
+    runGoldenVsToYamlFileTest testYamlFilePath =
       let outputFilePath =
-            (<> ".yml")
+            (<> ".golden.yml")
               . reverse
-              . drop 11
-              $ reverse goldenYamlFilePath
+              . drop 4
+              $ reverse testYamlFilePath
           haskellOutputFilePath =
             (<> ".hs.txt")
               . reverse
-              . drop 11
-              $ reverse goldenYamlFilePath
+              . drop 4
+              $ reverse testYamlFilePath
        in goldenVsToYaml
-            ("roundtrip " <> takeBaseName goldenYamlFilePath)
-            goldenYamlFilePath
+            ("roundtrip " <> takeBaseName testYamlFilePath)
+            testYamlFilePath
             $ do
-              eitherWorkflow <- YAML.decodeFileEither @Workflow goldenYamlFilePath
+              putStrLn $ "roundtrip " <> takeBaseName testYamlFilePath
+              eitherWorkflow <- YAML.decodeFileEither @Workflow testYamlFilePath
               either
                 (BS.writeFile outputFilePath)
                 (writeOutputFiles outputFilePath haskellOutputFilePath)
