@@ -1,9 +1,12 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+
 module Language.Github.Actions.Internal
   ( inverseMap,
   )
 where
 
-import Data.Map qualified as Map
+import qualified Data.Map as Map
 
 -- | https://hackage.haskell.org/package/relude-1.2.2.0/docs/src/Relude.Enum.html#inverseMap
 inverseMap ::

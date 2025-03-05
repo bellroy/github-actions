@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -11,29 +12,29 @@ module Language.Github.Actions.Workflow
 where
 
 import Data.Aeson (FromJSON, ToJSON (..), (.!=), (.:), (.:?), (.=))
-import Data.Aeson qualified as Aeson
-import Data.Aeson.KeyMap qualified as AesonKeyMap
+import qualified Data.Aeson as Aeson
+import qualified Data.Aeson.KeyMap as AesonKeyMap
 import Data.Map (Map)
 import Data.Maybe (catMaybes)
 import Data.Set (Set)
-import Data.Set qualified as Set
+import qualified Data.Set as Set
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
-import Hedgehog.Gen qualified as Gen
-import Hedgehog.Range qualified as Range
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 import Language.Github.Actions.Concurrency (Concurrency)
-import Language.Github.Actions.Concurrency qualified as Concurrency
+import qualified Language.Github.Actions.Concurrency as Concurrency
 import Language.Github.Actions.Defaults (Defaults)
-import Language.Github.Actions.Defaults qualified as Defaults
+import qualified Language.Github.Actions.Defaults as Defaults
 import Language.Github.Actions.Job (Job)
-import Language.Github.Actions.Job qualified as Job
+import qualified Language.Github.Actions.Job as Job
 import Language.Github.Actions.Job.Id (JobId)
-import Language.Github.Actions.Job.Id qualified as JobId
+import qualified Language.Github.Actions.Job.Id as JobId
 import Language.Github.Actions.Permissions (Permissions)
-import Language.Github.Actions.Permissions qualified as Permissions
+import qualified Language.Github.Actions.Permissions as Permissions
 import Language.Github.Actions.Workflow.Trigger (WorkflowTrigger)
-import Language.Github.Actions.Workflow.Trigger qualified as WorkflowTrigger
+import qualified Language.Github.Actions.Workflow.Trigger as WorkflowTrigger
 
 data WorkflowJobStep = WorkflowJobStep
   { name :: Maybe Text,

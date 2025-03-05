@@ -13,7 +13,14 @@ category:        Language
 build-type:      Simple
 extra-doc-files: README.md
 tested-with:
-  GHC ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.5 || ==9.6.6 || ==9.8.2
+  GHC ==8.10.7
+   || ==9.0.2
+   || ==9.2.4
+   || ==9.4.5
+   || ==9.6.6
+   || ==9.8.2
+   || ==9.10.1
+   || ==9.12.1
 
 source-repository head
   type:     git
@@ -22,7 +29,7 @@ source-repository head
 common deps
   build-depends:
     , aeson               ^>=2.2.3.0
-    , base                >=4.14      && <4.20
+    , base                >=4.14      && <4.22
     , containers          ^>=0.6.8
     , hedgehog            ^>=1.5
     , hoist-error         ^>=0.3.0.0
@@ -31,7 +38,7 @@ common deps
     , vector              ^>=0.13.0.0
 
 common opts
-  default-language: GHC2021
+  default-language: Haskell2010
   ghc-options:
     -Wall -Wcompat -Widentities -Wincomplete-record-updates
     -Wincomplete-uni-patterns -Werror=incomplete-patterns
@@ -74,17 +81,13 @@ test-suite spec
   other-modules:      Language.Github.Actions.WorkflowTest
   build-tool-depends: tasty-discover:tasty-discover ^>=5.0.0
   build-depends:
-    , filepath           ^>=1.4.2.2
+    , filepath            ^>=1.4.2.2
     , github-actions
-    , hedgehog-extra     ^>=0.4.0.0
-    , pretty-show        ^>=1.10
-    , tasty              ^>=1.5
-    , tasty-discover     ^>=5.0.0
-    , tasty-extended     ^>=0.1.0
-    , tasty-golden       ^>=2.3.5
-    , tasty-golden-yaml  ^>=0.1.0
-    , tasty-hedgehog     ^>=1.4.0.0
-    , tasty-hunit        ^>=0.10.0.3
-    , yaml               ^>=0.11.11
-
-  build-tool-depends: tasty-discover:tasty-discover ^>=5.0.0
+    , pretty-show         ^>=1.10
+    , tasty               ^>=1.5
+    , tasty-discover      ^>=5.0.0
+    , tasty-golden        ^>=2.3.5
+    , tasty-golden-extra  ^>=0.1.0
+    , tasty-hedgehog      ^>=1.4.0.0
+    , tasty-hunit         ^>=0.10.0.3
+    , yaml                ^>=0.11.11

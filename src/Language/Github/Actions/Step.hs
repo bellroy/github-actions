@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -10,20 +11,20 @@ module Language.Github.Actions.Step
 where
 
 import Data.Aeson (FromJSON, ToJSON (..), (.!=), (.:?), (.=))
-import Data.Aeson qualified as Aeson
+import qualified Data.Aeson as Aeson
 import Data.Map (Map)
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
-import Hedgehog.Gen qualified as Gen
-import Hedgehog.Range qualified as Range
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 import Language.Github.Actions.Shell (Shell)
-import Language.Github.Actions.Shell qualified as Shell
+import qualified Language.Github.Actions.Shell as Shell
 import Language.Github.Actions.Step.Id (StepId)
-import Language.Github.Actions.Step.Id qualified as StepId
+import qualified Language.Github.Actions.Step.Id as StepId
 import Language.Github.Actions.Step.With (StepWith)
-import Language.Github.Actions.Step.With qualified as StepWith
+import qualified Language.Github.Actions.Step.With as StepWith
 
 data Step = Step
   { continueOnError :: Bool,

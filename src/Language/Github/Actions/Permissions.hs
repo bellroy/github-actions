@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -13,15 +14,15 @@ where
 
 import Control.Monad.Fail.Hoist (hoistFail')
 import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import Data.Aeson qualified as Aeson
-import Data.Aeson.Types qualified as Aeson
+import qualified Data.Aeson as Aeson
+import qualified Data.Aeson.Types as Aeson
 import Data.Map (Map)
 import Data.String.Interpolate (i)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
-import Hedgehog.Gen qualified as Gen
-import Hedgehog.Range qualified as Range
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 import Language.Github.Actions.Internal (inverseMap)
 
 data PermissionType

@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -10,35 +11,35 @@ module Language.Github.Actions.Job
 where
 
 import Data.Aeson (FromJSON, ToJSON (..), (.!=), (.:?), (.=))
-import Data.Aeson qualified as Aeson
+import qualified Data.Aeson as Aeson
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
-import Hedgehog.Gen qualified as Gen
-import Hedgehog.Range qualified as Range
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 import Language.Github.Actions.Concurrency (Concurrency)
-import Language.Github.Actions.Concurrency qualified as Concurrency
+import qualified Language.Github.Actions.Concurrency as Concurrency
 import Language.Github.Actions.Defaults (Defaults)
-import Language.Github.Actions.Defaults qualified as Defaults
+import qualified Language.Github.Actions.Defaults as Defaults
 import Language.Github.Actions.Job.Container (JobContainer)
-import Language.Github.Actions.Job.Container qualified as JobContainer
+import qualified Language.Github.Actions.Job.Container as JobContainer
 import Language.Github.Actions.Job.Environment (JobEnvironment)
-import Language.Github.Actions.Job.Environment qualified as JobEnvironment
+import qualified Language.Github.Actions.Job.Environment as JobEnvironment
 import Language.Github.Actions.Job.Id (JobId)
-import Language.Github.Actions.Job.Id qualified as JobId
+import qualified Language.Github.Actions.Job.Id as JobId
 import Language.Github.Actions.Job.Strategy (JobStrategy)
-import Language.Github.Actions.Job.Strategy qualified as JobStrategy
+import qualified Language.Github.Actions.Job.Strategy as JobStrategy
 import Language.Github.Actions.Permissions (Permissions)
-import Language.Github.Actions.Permissions qualified as Permissions
+import qualified Language.Github.Actions.Permissions as Permissions
 import Language.Github.Actions.Service (Service)
-import Language.Github.Actions.Service qualified as Service
+import qualified Language.Github.Actions.Service as Service
 import Language.Github.Actions.Service.Id (ServiceId)
-import Language.Github.Actions.Service.Id qualified as ServiceId
+import qualified Language.Github.Actions.Service.Id as ServiceId
 import Language.Github.Actions.Step (Step)
-import Language.Github.Actions.Step qualified as Step
+import qualified Language.Github.Actions.Step as Step
 
 data Job = Job
   { concurrency :: Maybe Concurrency,

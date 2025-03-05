@@ -3,14 +3,14 @@
 
 module Language.Github.Actions.WorkflowTest where
 
-import Data.Yaml qualified as YAML
+import qualified Data.Yaml as YAML
 import Hedgehog.Extended (Property, trippingJSON)
 import Language.Github.Actions.Workflow (Workflow)
-import Language.Github.Actions.Workflow qualified as Workflow
+import qualified Language.Github.Actions.Workflow as Workflow
 import System.FilePath (takeBaseName)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (findByExtension)
-import Test.Tasty.Golden.Yaml.Diff (goldenVsToYamlFile)
+import Test.Tasty.Golden.Extra.GoldenVsToYAML (goldenVsToYaml)
 import Text.Show.Pretty (ppShow)
 
 test_goldenWorkflowFromYaml :: IO TestTree
@@ -18,8 +18,8 @@ test_goldenWorkflowFromYaml = do
   goldenYamlFiles <-
     filter ((reverse ".golden.yml" `isPrefixOf`) . reverse)
       <$> findByExtension [".yml"] "test/golden"
-  pure
-    $ testGroup
+  pure $
+    testGroup
       "Yaml Roundtrip"
       [ runGoldenVsToYamlFileTest goldenYamlFilePath
         | goldenYamlFilePath <- goldenYamlFiles

@@ -1,6 +1,8 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Language.Github.Actions.Job.Strategy
   ( JobStrategy (..),
@@ -9,18 +11,18 @@ module Language.Github.Actions.Job.Strategy
 where
 
 import Data.Aeson (FromJSON, ToJSON, (.!=), (.:?), (.=))
-import Data.Aeson qualified as Aeson
-import Data.Aeson.Types qualified as Aeson
+import qualified Data.Aeson as Aeson
+import qualified Data.Aeson.Types as Aeson
 import Data.Map (Map)
-import Data.Map qualified as Map
+import qualified Data.Map as Map
 import Data.Maybe (catMaybes)
 import Data.String (fromString)
 import Data.Text (Text)
-import Data.Text qualified as Text
+import qualified Data.Text as Text
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
-import Hedgehog.Gen qualified as Gen
-import Hedgehog.Range qualified as Range
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 
 data JobStrategy = JobStrategy
   { exclude :: Maybe [Text],
