@@ -3,14 +3,14 @@ jobs:
     name: "Generate matrix from cabal"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Extract the tested GHC versions
         id: set-matrix
         uses: kleidukos/get-tested@a0aa3f2d4ab0d10daa49dc9ee8c706d673fb0e02
         with:
           cabal-file: github-actions.cabal
-          ubuntu-version: "20.04"
+          ubuntu-version: "24.04"
           version: 0.1.7.1
   tests:
     name: ${{ matrix.ghc }} on ${{ matrix.os }}
