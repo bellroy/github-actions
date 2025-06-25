@@ -21,6 +21,8 @@ extra-source-files:
   test/golden/configuration-main.hs.txt
   test/golden/configuration-main.yml
 
+-- `hoist-error` is currently blocking GHC >9.8
+-- https://github.com/qfpl/hs-hoist-error/pull/12
 tested-with:        GHC ==9.6.6 || ==9.8.2
 
 common opts
