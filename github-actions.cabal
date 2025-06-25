@@ -16,7 +16,7 @@ copyright:          Copyright (C) 2025 Bellroy Pty Ltd
 category:           Language
 build-type:         Simple
 extra-source-files: README.md
-tested-with:        GHC ==9.6.6 || ==9.8.2 || ==9.10.1 || ==9.12.1
+tested-with:        GHC ==9.6.6 || ==9.8.2
 
 common opts
   default-language: Haskell2010
