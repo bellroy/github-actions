@@ -17,8 +17,7 @@ category:           Language
 build-type:         Simple
 extra-source-files: README.md
 tested-with:
-  GHC ==9.0.2
-   || ==9.2.4
+  GHC ==9.2.4
    || ==9.4.5
    || ==9.6.6
    || ==9.8.2
