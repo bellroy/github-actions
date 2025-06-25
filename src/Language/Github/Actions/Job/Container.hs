@@ -3,6 +3,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
+-- |
+-- Module      : Language.Github.Actions.Job.Container
+-- Description : Container configuration for GitHub Actions jobs
+-- Copyright   : (c) 2025 Bellroy Pty Ltd
+-- License     : BSD-3-Clause
+-- Maintainer  : Bellroy Tech Team <haskell@bellroy.com>
+--
+-- This module provides the 'JobContainer' type for configuring Docker containers
+-- that jobs run inside of in GitHub Actions workflows.
+--
+-- Job containers allow you to run job steps inside a Docker container with a specific
+-- environment, dependencies, and configuration. This provides consistency across
+-- different runner environments and enables the use of custom tooling.
+--
+-- For more information about GitHub Actions job containers, see:
+-- <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idcontainer>
 module Language.Github.Actions.Job.Container
   ( JobContainer (..),
     gen,
@@ -19,12 +35,54 @@ import Hedgehog (MonadGen)
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 
+-- | Container configuration for running a job inside a Docker container.
+--
+-- Job containers provide an isolated, consistent environment for job execution.
+-- This is useful for ensuring specific tool versions, operating system environments,
+-- or complex dependency setups.
+--
+-- Example usage:
+--
+-- @
+-- import Language.Github.Actions.Job.Container
+-- import qualified Data.Map as Map
+--
+-- -- Node.js development container
+-- nodeContainer :: JobContainer
+-- nodeContainer = JobContainer
+--  { image = Just "node:18"
+--  , env = Just $ Map.fromList [("NODE_ENV", "test")]
+--  , credentials = Nothing
+--  , options = Nothing
+--  , ports = Nothing
+--  , volumes = Nothing
+--  }
+--
+-- -- Database testing container with services
+-- dbTestContainer :: JobContainer
+-- dbTestContainer = JobContainer
+--  { image = Just "ubuntu:22.04"
+--  , env = Just $ Map.fromList [("DEBIAN_FRONTEND", "noninteractive")]
+--  , credentials = Nothing
+--  , options = Just "--network postgres"
+--  , ports = Just ["8080:8080"]
+--  , volumes = Just ["\${{ github.workspace }}:\/workspace"]
+--  }
+-- @
+--
+-- For more details, see: <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idcontainer>
 data JobContainer = JobContainer
-  { credentials :: Maybe (Map Text Text),
+  { -- | Registry credentials for private images
+    credentials :: Maybe (Map Text Text),
+    -- | Environment variables for the container
     env :: Maybe (Map Text Text),
+    -- | Docker image to use for the container
     image :: Maybe Text,
+    -- | Additional Docker run options
     options :: Maybe Text,
+    -- | Ports to expose from the container
     ports :: Maybe [Text],
+    -- | Volumes to mount in the container
     volumes :: Maybe [Text]
   }
   deriving stock (Eq, Generic, Ord, Show)
@@ -51,6 +109,10 @@ instance ToJSON JobContainer where
           ("volumes" .=) <$> volumes
         ]
 
+-- | Generate a random 'JobContainer' for property-based testing.
+--
+-- This generator creates job containers with randomized properties suitable for testing
+-- JSON serialization roundtrips and other property-based tests.
 gen :: (MonadGen m) => m JobContainer
 gen = do
   credentials <- Gen.maybe genTextMap

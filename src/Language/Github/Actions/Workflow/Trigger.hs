@@ -6,6 +6,54 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+-- |
+-- Module      : Language.Github.Actions.Workflow.Trigger
+-- Description : GitHub Actions workflow trigger events and configurations
+-- Copyright   : (c) 2025 Bellroy Pty Ltd
+-- License     : BSD-3-Clause
+-- Maintainer  : Bellroy Tech Team <haskell@bellroy.com>
+--
+-- This module provides comprehensive support for GitHub Actions workflow triggers,
+-- which determine when workflows should run.
+--
+-- Workflow triggers respond to various GitHub events such as pushes, pull requests,
+-- issue updates, scheduled times, and external repository dispatch events. Each trigger
+-- type can be configured with specific activity types and filtering criteria.
+--
+-- The main types include:
+--
+-- * 'WorkflowTrigger' - The primary trigger type supporting all GitHub event types
+-- * Activity type enums for each event (e.g., 'PullRequestActivityType', 'IssuesActivityType')
+-- * Attribute types for triggers with complex configuration (e.g., 'PushTriggerAttributes')
+--
+-- Example usage:
+--
+-- @
+-- import Language.Github.Actions.Workflow.Trigger
+--
+-- -- Trigger on push to main branch
+-- pushTrigger :: WorkflowTrigger
+-- pushTrigger = PushTrigger $ PushTriggerAttributes
+--   { pushBranches = Just ("main" :| [])
+--   , pushBranchesIgnore = Nothing
+--   , pushPaths = Nothing
+--   , pushPathsIgnore = Nothing
+--   , pushTags = Nothing
+--   }
+--
+-- -- Trigger on pull request opened or synchronized
+-- prTrigger :: WorkflowTrigger
+-- prTrigger = PullRequestTrigger $ PullRequestTriggerAttributes
+--   { pullRequestActivityTypes = Just (PullRequestOpened :| [PullRequestSynchronize])
+--   , pullRequestBranches = Nothing
+--   , pullRequestBranchesIgnore = Nothing
+--   , pullRequestPaths = Nothing
+--   , pullRequestPathsIgnore = Nothing
+--   }
+-- @
+--
+-- For more information about GitHub Actions events and triggers, see:
+-- <https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows>
 module Language.Github.Actions.Workflow.Trigger
   ( BranchProtectionRuleActivityType (..),
     CheckRunActivityType (..),
@@ -306,28 +354,70 @@ parseMilestoneActivityType t =
   maybe (Left [i|Unknown MilestoneActivityType: #{t}|]) Right $
     inverseMap renderMilestoneActivityType t
 
+-- | Activity types for pull request trigger events.
+--
+-- These specify which pull request activities should trigger the workflow.
+-- Common combinations include opened/synchronized for CI workflows, or
+-- closed for deployment workflows.
+--
+-- Example usage:
+--
+-- @
+-- -- Trigger on pull request creation and updates
+-- ciTrigger :: PullRequestActivityType
+-- ciTrigger = PullRequestTrigger $ PullRequestTriggerAttributes
+--  { pullRequestActivityTypes = Just (PullRequestOpened :| [PullRequestSynchronize])
+--  , pullRequestBranches = Nothing
+--  , pullRequestBranchesIgnore = Nothing
+--  , pullRequestPaths = Nothing
+--  , pullRequestPathsIgnore = Nothing
+--  }
+-- @
+--
+-- For more details, see: <https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#pull_request>
 data PullRequestActivityType
-  = PullRequestAssigned
-  | PullRequestAutoMergeDisabled
-  | PullRequestAutoMergeEnabled
-  | PullRequestClosed
-  | PullRequestConvertedToDraft
-  | PullRequestDemilestoned
-  | PullRequestDequeued
-  | PullRequestEdited
-  | PullRequestEnqueued
-  | PullRequestLabeled
-  | PullRequestLocked
-  | PullRequestMilestoned
-  | PullRequestOpened
-  | PullRequestReadyForReview
-  | PullRequestReopened
-  | PullRequestReviewRequestRemoved
-  | PullRequestReviewRequested
-  | PullRequestSynchronize
-  | PullRequestUnassigned
-  | PullRequestUnlabeled
-  | PullRequestUnlocked
+  = -- | Pull request was assigned to someone
+    PullRequestAssigned
+  | -- | Auto-merge was disabled
+    PullRequestAutoMergeDisabled
+  | -- | Auto-merge was enabled
+    PullRequestAutoMergeEnabled
+  | -- | Pull request was closed
+    PullRequestClosed
+  | -- | Pull request was converted to draft
+    PullRequestConvertedToDraft
+  | -- | Milestone was removed from pull request
+    PullRequestDemilestoned
+  | -- | Pull request was removed from merge queue
+    PullRequestDequeued
+  | -- | Pull request title or body was edited
+    PullRequestEdited
+  | -- | Pull request was added to merge queue
+    PullRequestEnqueued
+  | -- | Label was added to pull request
+    PullRequestLabeled
+  | -- | Pull request conversation was locked
+    PullRequestLocked
+  | -- | Milestone was added to pull request
+    PullRequestMilestoned
+  | -- | Pull request was opened
+    PullRequestOpened
+  | -- | Draft pull request was marked ready for review
+    PullRequestReadyForReview
+  | -- | Pull request was reopened
+    PullRequestReopened
+  | -- | Review request was removed
+    PullRequestReviewRequestRemoved
+  | -- | Review was requested
+    PullRequestReviewRequested
+  | -- | Pull request's head branch was updated
+    PullRequestSynchronize
+  | -- | Pull request was unassigned
+    PullRequestUnassigned
+  | -- | Label was removed from pull request
+    PullRequestUnlabeled
+  | -- | Pull request conversation was unlocked
+    PullRequestUnlocked
   deriving stock (Bounded, Enum, Eq, Generic, Ord, Show)
 
 instance FromJSON PullRequestActivityType where
@@ -528,11 +618,47 @@ instance ToJSON PullRequestTargetTriggerAttributes where
           ("types" .=) <$> pullRequestTargetActivityTypes
         ]
 
+-- | Configuration attributes for push trigger events.
+--
+-- Push triggers can be filtered by branches, paths, and tags to control exactly
+-- when the workflow should run. This allows for fine-grained control over which
+-- repository changes should initiate workflow execution.
+--
+-- Example usage:
+--
+-- @
+-- -- Trigger on pushes to main or develop branches
+-- pushMainDevelop :: PushTriggerAttributes
+-- pushMainDevelop = PushTriggerAttributes
+--  { pushBranches = Just ("main" :| ["develop"])
+--  , pushBranchesIgnore = Nothing
+--  , pushPaths = Nothing
+--  , pushPathsIgnore = Nothing
+--  , pushTags = Nothing
+--  }
+--
+-- -- Trigger on pushes to docs directory, ignoring gh-pages
+-- pushDocsOnly :: PushTriggerAttributes
+-- pushDocsOnly = PushTriggerAttributes
+--  { pushBranches = Nothing
+--  , pushBranchesIgnore = Just ("gh-pages" :| [])
+--  , pushPaths = Just ("docs\/**" :| [])
+--  , pushPathsIgnore = Nothing
+--  , pushTags = Nothing
+--  }
+-- @
+--
+-- For more details, see: <https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#push>
 data PushTriggerAttributes = PushTriggerAttributes
-  { pushBranches :: Maybe (NonEmpty Text),
+  { -- | Branches to include (default: all)
+    pushBranches :: Maybe (NonEmpty Text),
+    -- | Branches to exclude
     pushBranchesIgnore :: Maybe (NonEmpty Text),
+    -- | File paths to include (default: all)
     pushPaths :: Maybe (NonEmpty Text),
+    -- | File paths to exclude
     pushPathsIgnore :: Maybe (NonEmpty Text),
+    -- | Tags to include
     pushTags :: Maybe (NonEmpty Text)
   }
   deriving stock (Eq, Generic, Ord, Show)
@@ -865,39 +991,104 @@ instance ToJSON WorkflowRunTriggerAttributes where
           ("branches-ignore" .=) <$> workflowRunBranchesIgnore
         ]
 
+-- | Comprehensive enumeration of all GitHub Actions workflow trigger events.
+--
+-- Each trigger corresponds to a specific GitHub event that can initiate a workflow run.
+-- Many triggers can be configured with activity types to specify exactly which sub-events
+-- should cause the workflow to run.
+--
+-- Common trigger examples:
+--
+-- * 'PushTrigger' - Runs on pushes to repository branches or tags
+-- * 'PullRequestTrigger' - Runs on pull request events (open, sync, close, etc.)
+-- * 'ScheduleTrigger' - Runs on a schedule using cron syntax
+-- * 'WorkflowDispatchTrigger' - Allows manual workflow execution
+-- * 'IssuesTrigger' - Runs on issue events (open, close, label, etc.)
+--
+-- For triggers with complex configuration, attribute types provide filtering options:
+--
+-- @
+-- -- Push trigger with branch filtering
+-- pushToMain :: WorkflowTrigger
+-- pushToMain = PushTrigger $ PushTriggerAttributes
+--  { pushBranches = Just ("main" :| [])
+--  , pushBranchesIgnore = Nothing
+--  , pushPaths = Nothing
+--  , pushPathsIgnore = Nothing
+--  , pushTags = Nothing
+--  }
+--
+-- -- Issue trigger for specific activity types
+-- issueEvents :: WorkflowTrigger
+-- issueEvents = IssuesTrigger (IssuesOpened :| [IssuesClosed, IssuesLabeled])
+-- @
+--
+-- For complete event documentation, see: <https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows>
 data WorkflowTrigger
-  = BranchProtectionRuleTrigger (NonEmpty BranchProtectionRuleActivityType)
-  | CheckRunTrigger (NonEmpty CheckRunActivityType)
-  | CheckSuiteCompletedTrigger
-  | CreateTrigger
-  | DeleteTrigger
-  | DeploymentTrigger
-  | DeploymentStatusTrigger
-  | DiscussionTrigger (NonEmpty DiscussionActivityType)
-  | DiscussionCommentTrigger (NonEmpty DiscussionCommentActivityType)
-  | ForkTrigger
-  | GollumTrigger
-  | IssueCommentTrigger (NonEmpty IssueCommentActivityType)
-  | IssuesTrigger (NonEmpty IssuesActivityType)
-  | LabelTrigger (NonEmpty LabelActivityType)
-  | MergeGroupChecksRequestedTrigger
-  | MilestoneTrigger (NonEmpty MilestoneActivityType)
-  | PageBuildTrigger
-  | PublicTrigger
-  | PullRequestTrigger PullRequestTriggerAttributes
-  | PullRequestReviewTrigger (NonEmpty PullRequestReviewActivityType)
-  | PullRequestReviewCommentTrigger (NonEmpty PullRequestReviewCommentActivityType)
-  | PullRequestTargetTrigger PullRequestTargetTriggerAttributes
-  | PushTrigger PushTriggerAttributes
-  | RegistryPackageTrigger (NonEmpty RegistryPackageActivityType)
-  | ReleaseTrigger (NonEmpty ReleaseActivityType)
-  | RepositoryDispatchTrigger (NonEmpty Text)
-  | ScheduleTrigger (NonEmpty Text)
-  | StatusTrigger
-  | WatchStartedTrigger
-  | WorkflowCallTrigger WorkflowCallAttributes
-  | WorkflowDispatchTrigger WorkflowDispatchAttributes
-  | WorkflowRunTrigger WorkflowRunTriggerAttributes
+  = -- | Branch protection rule events
+    BranchProtectionRuleTrigger (NonEmpty BranchProtectionRuleActivityType)
+  | -- | Check run events
+    CheckRunTrigger (NonEmpty CheckRunActivityType)
+  | -- | Check suite completion
+    CheckSuiteCompletedTrigger
+  | -- | Branch or tag creation
+    CreateTrigger
+  | -- | Branch or tag deletion
+    DeleteTrigger
+  | -- | Deployment events
+    DeploymentTrigger
+  | -- | Deployment status changes
+    DeploymentStatusTrigger
+  | -- | Discussion events
+    DiscussionTrigger (NonEmpty DiscussionActivityType)
+  | -- | Discussion comment events
+    DiscussionCommentTrigger (NonEmpty DiscussionCommentActivityType)
+  | -- | Repository fork events
+    ForkTrigger
+  | -- | Wiki page events
+    GollumTrigger
+  | -- | Issue comment events
+    IssueCommentTrigger (NonEmpty IssueCommentActivityType)
+  | -- | Issue events
+    IssuesTrigger (NonEmpty IssuesActivityType)
+  | -- | Label events
+    LabelTrigger (NonEmpty LabelActivityType)
+  | -- | Merge group check requests
+    MergeGroupChecksRequestedTrigger
+  | -- | Milestone events
+    MilestoneTrigger (NonEmpty MilestoneActivityType)
+  | -- | GitHub Pages build events
+    PageBuildTrigger
+  | -- | Repository publicity changes
+    PublicTrigger
+  | -- | Pull request events with filtering
+    PullRequestTrigger PullRequestTriggerAttributes
+  | -- | Pull request review events
+    PullRequestReviewTrigger (NonEmpty PullRequestReviewActivityType)
+  | -- | PR review comment events
+    PullRequestReviewCommentTrigger (NonEmpty PullRequestReviewCommentActivityType)
+  | -- | Pull request target events with filtering
+    PullRequestTargetTrigger PullRequestTargetTriggerAttributes
+  | -- | Push events with filtering
+    PushTrigger PushTriggerAttributes
+  | -- | Package registry events
+    RegistryPackageTrigger (NonEmpty RegistryPackageActivityType)
+  | -- | Release events
+    ReleaseTrigger (NonEmpty ReleaseActivityType)
+  | -- | External repository dispatch events
+    RepositoryDispatchTrigger (NonEmpty Text)
+  | -- | Scheduled events (cron expressions)
+    ScheduleTrigger (NonEmpty Text)
+  | -- | Commit status events
+    StatusTrigger
+  | -- | Repository watch events
+    WatchStartedTrigger
+  | -- | Reusable workflow calls
+    WorkflowCallTrigger WorkflowCallAttributes
+  | -- | Manual workflow dispatch
+    WorkflowDispatchTrigger WorkflowDispatchAttributes
+  | -- | Workflow run events with filtering
+    WorkflowRunTrigger WorkflowRunTriggerAttributes
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON WorkflowTrigger where
@@ -1115,6 +1306,11 @@ instance ToJSON WorkflowTrigger where
       WorkflowRunTrigger attrs ->
         Aeson.toJSON attrs
 
+-- | Generate a random 'WorkflowTrigger' for property-based testing.
+--
+-- This generator creates workflow triggers with randomized properties suitable for testing
+-- JSON serialization roundtrips and other property-based tests. It covers all trigger types
+-- and their associated activity types and attributes.
 gen :: (MonadGen m) => m WorkflowTrigger
 gen =
   Gen.choice

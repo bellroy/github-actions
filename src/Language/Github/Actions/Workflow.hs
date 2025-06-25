@@ -4,6 +4,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
+-- |
+-- Module      : Language.Github.Actions.Workflow
+-- Description : GitHub Actions workflow definition and serialization
+-- Copyright   : (c) 2025 Bellroy Pty Ltd
+-- License     : BSD-3-Clause
+-- Maintainer  : Bellroy Tech Team <haskell@bellroy.com>
+--
+-- This module provides the core 'Workflow' type for representing GitHub Actions workflows,
+-- along with JSON serialization/deserialization and generation utilities.
+--
+-- GitHub Actions workflows are defined in YAML files that specify automated processes
+-- triggered by events in a GitHub repository. This module provides a type-safe way to
+-- construct and serialize these workflows.
+--
+-- For more information about GitHub Actions workflow syntax, see:
+-- <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions>
 module Language.Github.Actions.Workflow
   ( Workflow (..),
     gen,
@@ -36,20 +52,52 @@ import qualified Language.Github.Actions.Permissions as Permissions
 import Language.Github.Actions.Workflow.Trigger (WorkflowTrigger)
 import qualified Language.Github.Actions.Workflow.Trigger as WorkflowTrigger
 
+-- | Internal type for workflow job steps (used in JSON parsing)
 data WorkflowJobStep = WorkflowJobStep
-  { name :: Maybe Text,
+  { -- | Optional step name
+    name :: Maybe Text,
+    -- | Optional run command
     run :: Maybe Text
   }
   deriving stock (Eq, Generic, Ord, Show)
 
+-- | A GitHub Actions workflow definition.
+--
+-- A workflow defines automated processes that run in response to events in your repository.
+-- Workflows are defined in YAML files stored in the @.github\/workflows@ directory.
+--
+-- Example usage:
+--
+-- @
+-- import Language.Github.Actions.Workflow
+-- import qualified Language.Github.Actions.Job as Job
+-- import qualified Language.Github.Actions.Job.Id as JobId
+--
+-- myWorkflow :: Workflow
+-- myWorkflow = new
+--  { workflowName = Just "CI"
+--  , jobs = Map.singleton (JobId "build") Job.new
+--  , on = Set.singleton pushTrigger
+--  }
+-- @
+--
+-- For more details, see: <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions>
 data Workflow = Workflow
-  { concurrency :: Maybe Concurrency,
+  { -- | Concurrency settings to limit workflow runs
+    concurrency :: Maybe Concurrency,
+    -- | Default settings for all jobs in the workflow
     defaults :: Maybe Defaults,
+    -- | Environment variables available to all jobs
     env :: Map Text Text,
+    -- | The jobs that make up the workflow
     jobs :: Map JobId Job,
+    -- | Events that trigger the workflow
     on :: Set WorkflowTrigger,
+    -- | Permissions granted to the workflow
     permissions :: Maybe Permissions,
+    -- | Name for workflow runs
     runName :: Maybe Text,
+    -- | Name of the workflow
     workflowName :: Maybe Text
   }
   deriving stock (Eq, Generic, Ord, Show)
@@ -95,6 +143,10 @@ instance ToJSON Workflow where
       monoidToMaybe :: (Eq a, Monoid a) => a -> Maybe a
       monoidToMaybe a = if a == mempty then Nothing else Just a
 
+-- | Generate a random 'Workflow' for property-based testing.
+--
+-- This generator creates workflows with randomized properties suitable for testing
+-- JSON serialization roundtrips and other property-based tests.
 gen :: (MonadGen m) => m Workflow
 gen = do
   concurrency <- Gen.maybe Concurrency.gen
@@ -128,6 +180,20 @@ gen = do
     genText = Gen.text (Range.linear 1 5) Gen.alphaNum
     genTextMap = Gen.map (Range.linear 1 5) $ liftA2 (,) genText genText
 
+-- | Create a new empty 'Workflow' with default values.
+--
+-- This provides a minimal workflow that can be extended with specific jobs,
+-- triggers, and other configuration.
+--
+-- Example:
+--
+-- @
+-- myWorkflow = new
+--   { workflowName = Just "My Workflow"
+--   , jobs = Map.singleton (JobId "test") Job.new
+--   , on = Set.singleton (PushTrigger pushTriggerDefaults)
+--   }
+-- @
 new :: Workflow
 new =
   Workflow

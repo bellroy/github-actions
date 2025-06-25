@@ -4,6 +4,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
+-- |
+-- Module      : Language.Github.Actions.Permissions
+-- Description : GitHub Actions permissions and access control
+-- Copyright   : (c) 2025 Bellroy Pty Ltd
+-- License     : BSD-3-Clause
+-- Maintainer  : Bellroy Tech Team <haskell@bellroy.com>
+--
+-- This module provides types for managing GitHub Actions permissions and access control.
+-- Permissions control what GitHub APIs and resources workflows and jobs can access.
+--
+-- You can set permissions at the workflow level (affecting all jobs) or at individual
+-- job levels. This follows the principle of least privilege by allowing you to grant
+-- only the specific permissions needed.
+--
+-- For more information about GitHub Actions permissions, see:
+-- <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#permissions>
 module Language.Github.Actions.Permissions
   ( Permissions (..),
     PermissionType (..),
@@ -25,21 +41,41 @@ import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 import Language.Github.Actions.Internal (inverseMap)
 
+-- | Types of permissions that can be granted to GitHub Actions workflows.
+--
+-- Each permission type corresponds to a specific area of GitHub functionality
+-- that workflows might need to access.
+--
+-- For more details about each permission type, see: <https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token>
 data PermissionType
-  = Actions
-  | Attestations
-  | Checks
-  | Contents
-  | Deployments
-  | IdToken
-  | Issues
-  | Discussions
-  | Packages
-  | Pages
-  | PullRequests
-  | RepositoryProjects
-  | SecurityEvents
-  | Statuses
+  = -- | Manage GitHub Actions (e.g., cancel workflow runs)
+    Actions
+  | -- | Create and verify attestations
+    Attestations
+  | -- | Create and update check runs and suites
+    Checks
+  | -- | Read and write repository contents
+    Contents
+  | -- | Create and manage deployments
+    Deployments
+  | -- | Request OIDC JWT ID tokens
+    IdToken
+  | -- | Create and manage issues
+    Issues
+  | -- | Create and manage discussions
+    Discussions
+  | -- | Publish and manage packages
+    Packages
+  | -- | Deploy to GitHub Pages
+    Pages
+  | -- | Create and manage pull requests
+    PullRequests
+  | -- | Manage repository projects
+    RepositoryProjects
+  | -- | Read and write security events
+    SecurityEvents
+  | -- | Create commit status checks
+    Statuses
   deriving stock (Bounded, Enum, Eq, Generic, Ord, Show)
 
 instance FromJSON PermissionType where
@@ -78,10 +114,16 @@ parsePermissionType t =
   maybe (Left [i|Unknown PermissionType: #{t}|]) Right $
     inverseMap renderPermissionType t
 
+-- | Permission levels that can be granted for each permission type.
+--
+-- Permissions follow a hierarchy where Write typically includes Read access.
 data Permission
-  = None
-  | Read
-  | Write
+  = -- | No access granted
+    None
+  | -- | Read-only access
+    Read
+  | -- | Read and write access
+    Write
   deriving stock (Bounded, Enum, Eq, Generic, Ord, Show)
 
 instance FromJSON Permission where
@@ -103,11 +145,36 @@ parsePermission t =
   maybe (Left [i|Unknown Permission: #{t}|]) Right $
     inverseMap renderPermission t
 
+-- | Overall permissions configuration for a workflow or job.
+--
+-- Permissions can be set globally (affecting all permission types) or
+-- individually for specific permission types.
+--
+-- Example usage:
+--
+-- @
+-- import Language.Github.Actions.Permissions
+--
+-- -- Grant read access to everything
+-- readOnlyPerms :: Permissions
+-- readOnlyPerms = ReadAll
+--
+-- -- Grant specific permissions only
+-- customPerms :: Permissions
+-- customPerms = Custom $ Map.fromList
+--  [ (Contents, Read)
+--  , (PullRequests, Write)
+--  ]
+-- @
 data Permissions
-  = NoPermissions
-  | ReadAll
-  | WriteAll
-  | Custom (Map PermissionType Permission)
+  = -- | No permissions granted (empty object)
+    NoPermissions
+  | -- | Read access to all permission types
+    ReadAll
+  | -- | Write access to all permission types
+    WriteAll
+  | -- | Custom permission mapping
+    Custom (Map PermissionType Permission)
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON Permissions where
@@ -126,6 +193,7 @@ instance ToJSON Permissions where
     WriteAll -> Aeson.String "write-all"
     Custom m -> Aeson.toJSON m
 
+-- | Generate a random 'Permissions' for property-based testing.
 gen :: (MonadGen m) => m Permissions
 gen =
   Gen.choice
