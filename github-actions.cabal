@@ -35,7 +35,7 @@ common deps
     , hedgehog            ^>=1.5
     , hoist-error         ^>=0.3.0.0
     , string-interpolate  ^>=0.3.3
-    , text                ^>=1.2      || ^>=2.0 || ^>=2.1
+    , text                ==1.2.4.1   || ==2.0.2
     , vector              ^>=0.13.0.0
 
 library
