@@ -8,7 +8,6 @@
     inputs.bellroy-nix-foss.lib.haskellProject {
       src = ./.;
       supportedCompilers = [
-        "ghc810"
         "ghc90"
         "ghc92"
         "ghc94"
