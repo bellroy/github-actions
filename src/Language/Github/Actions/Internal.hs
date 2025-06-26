@@ -26,9 +26,7 @@ import qualified Data.Map as Map
 inverseMap ::
   forall a k.
   (Bounded a, Enum a, Ord k) =>
-  -- | Function from enumeration values to keys
   (a -> k) ->
-  -- | Function from keys to enumeration values
   (k -> Maybe a)
 inverseMap f = (`Map.lookup` dict)
   where
