@@ -10,7 +10,7 @@ import qualified Data.ByteString as BS
 import Data.List (isPrefixOf)
 import qualified Data.Text as Text
 import Data.Text.Encoding (encodeUtf8)
-import qualified Data.Yaml as YAML
+import qualified Data.Yaml as Yaml
 import Hedgehog (Gen, Property, forAll, property, tripping)
 import Language.Github.Actions.Workflow (Workflow)
 import qualified Language.Github.Actions.Workflow as Workflow
@@ -48,14 +48,14 @@ test_goldenWorkflowFromYaml = do
             testYamlFilePath
             $ do
               putStrLn $ "roundtrip " <> takeBaseName testYamlFilePath
-              eitherWorkflow <- YAML.decodeFileEither @Workflow testYamlFilePath
+              eitherWorkflow <- Yaml.decodeFileEither @Workflow testYamlFilePath
               either
                 (BS.writeFile outputFilePath >> (\_ -> fail "YAML decoding failed"))
                 (\workflow -> writeOutputFiles outputFilePath haskellOutputFilePath workflow >> pure workflow)
-                $ first (encodeUtf8 . Text.pack . YAML.prettyPrintParseException) eitherWorkflow
+                $ first (encodeUtf8 . Text.pack . Yaml.prettyPrintParseException) eitherWorkflow
     writeOutputFiles :: FilePath -> FilePath -> Workflow -> IO ()
     writeOutputFiles outputFilePath haskellOutputFilePath workflow = do
-      BS.writeFile outputFilePath (YAML.encode workflow)
+      BS.writeFile outputFilePath (Yaml.encode workflow)
         >> BS.writeFile haskellOutputFilePath (encodeUtf8 . Text.pack $ ppShow workflow)
 
 hprop_WorkflowRoundTrip :: Property

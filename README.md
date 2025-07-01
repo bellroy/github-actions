@@ -17,7 +17,7 @@ You can create a workflow in Haskell and export it to YAML format:
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
 
-import qualified Data.Yaml as YAML
+import qualified Data.Yaml as Yaml
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.List.NonEmpty (NonEmpty(..))
@@ -62,7 +62,7 @@ testStep = Step.new
 
 -- Export to YAML
 exportWorkflow :: IO ()
-exportWorkflow = YAML.encodeFile "workflow.yml" myWorkflow
+exportWorkflow = Yaml.encodeFile "workflow.yml" myWorkflow
 ```
 
 ### 2. Importing a YAML file into a Workflow representation
@@ -72,16 +72,16 @@ You can load an existing GitHub Actions YAML file into a Haskell `Workflow` type
 ```haskell
 {-# LANGUAGE TypeApplications #-}
 
-import qualified Data.Yaml as YAML
+import qualified Data.Yaml as Yaml
 import Language.Github.Actions.Workflow (Workflow)
 
 -- Import from YAML file
 importWorkflow :: FilePath -> IO (Either String Workflow)
 importWorkflow yamlFilePath = do
-  result <- YAML.decodeFileEither @Workflow yamlFilePath
+  result <- Yaml.decodeFileEither @Workflow yamlFilePath
   case result of
     Left parseException ->
-      return $ Left $ YAML.prettyPrintParseException parseException
+      return $ Left $ Yaml.prettyPrintParseException parseException
     Right workflow ->
       return $ Right workflow
 
