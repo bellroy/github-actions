@@ -120,10 +120,6 @@ instance ToJSON StepWith where
     StepWithEnv env ->
       toJSON env
 
--- | Generate a random 'StepWith' for property-based testing.
---
--- This generator creates step inputs with randomized properties suitable for testing
--- JSON serialization roundtrips and other property-based tests.
 gen :: (MonadGen m) => m StepWith
 gen =
   Gen.choice

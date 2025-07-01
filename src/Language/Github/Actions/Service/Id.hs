@@ -65,7 +65,6 @@ newtype ServiceId = ServiceId Text
   deriving stock (Eq, Generic, Ord, Show)
   deriving newtype (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 
--- | Generate a random 'ServiceId' for property-based testing.
 gen :: (MonadGen m) => m ServiceId
 gen = ServiceId <$> Gen.text (Range.linear 1 5) Gen.alphaNum
 

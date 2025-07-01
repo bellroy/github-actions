@@ -170,10 +170,6 @@ instance ToJSON Job where
       monoidToMaybe :: (Eq a, Monoid a) => a -> Maybe a
       monoidToMaybe a = if a == mempty then Nothing else Just a
 
--- | Generate a random 'Job' for property-based testing.
---
--- This generator creates jobs with randomized properties suitable for testing
--- JSON serialization roundtrips and other property-based tests.
 gen :: (MonadGen m) => m Job
 gen = do
   concurrency <- Gen.maybe Concurrency.gen

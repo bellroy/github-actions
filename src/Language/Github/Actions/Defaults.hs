@@ -91,10 +91,6 @@ instance ToJSON Defaults where
             )
       ]
 
--- | Generate a random 'Defaults' for property-based testing.
---
--- This generator creates defaults with randomized properties suitable for testing
--- JSON serialization roundtrips and other property-based tests.
 gen :: (MonadGen m) => m Defaults
 gen = do
   runShell <- Gen.maybe Shell.gen

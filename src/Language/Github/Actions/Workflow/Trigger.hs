@@ -1306,11 +1306,6 @@ instance ToJSON WorkflowTrigger where
       WorkflowRunTrigger attrs ->
         Aeson.toJSON attrs
 
--- | Generate a random 'WorkflowTrigger' for property-based testing.
---
--- This generator creates workflow triggers with randomized properties suitable for testing
--- JSON serialization roundtrips and other property-based tests. It covers all trigger types
--- and their associated activity types and attributes.
 gen :: (MonadGen m) => m WorkflowTrigger
 gen =
   Gen.choice

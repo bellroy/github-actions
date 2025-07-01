@@ -193,7 +193,6 @@ instance ToJSON Permissions where
     WriteAll -> Aeson.String "write-all"
     Custom m -> Aeson.toJSON m
 
--- | Generate a random 'Permissions' for property-based testing.
 gen :: (MonadGen m) => m Permissions
 gen =
   Gen.choice

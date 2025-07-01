@@ -114,10 +114,6 @@ parseShell t =
       [] -> Nothing
       args -> Just $ Text.unwords args
 
--- | Generate a random 'Shell' for property-based testing.
---
--- This generator creates shells with randomized properties suitable for testing
--- JSON serialization roundtrips and other property-based tests.
 gen :: (MonadGen m) => m Shell
 gen =
   Gen.choice

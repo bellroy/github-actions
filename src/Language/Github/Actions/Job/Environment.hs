@@ -86,10 +86,6 @@ instance ToJSON JobEnvironment where
   toJSON (NamedJobEnvironment s) = Aeson.String s
   toJSON (CustomJobEnvironment m) = Aeson.toJSON m
 
--- | Generate a random 'JobEnvironment' for property-based testing.
---
--- This generator creates job environments with randomized properties suitable for testing
--- JSON serialization roundtrips and other property-based tests.
 gen :: (MonadGen m) => m JobEnvironment
 gen =
   Gen.choice

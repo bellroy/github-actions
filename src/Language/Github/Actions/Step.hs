@@ -133,10 +133,6 @@ instance ToJSON Step where
       monoidToMaybe :: (Eq a, Monoid a) => a -> Maybe a
       monoidToMaybe a = if a == mempty then Nothing else Just a
 
--- | Generate a random 'Step' for property-based testing.
---
--- This generator creates steps with randomized properties suitable for testing
--- JSON serialization roundtrips and other property-based tests.
 gen :: (MonadGen m) => m Step
 gen = do
   continueOnError <- Gen.bool

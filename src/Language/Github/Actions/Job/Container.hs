@@ -109,10 +109,6 @@ instance ToJSON JobContainer where
           ("volumes" .=) <$> volumes
         ]
 
--- | Generate a random 'JobContainer' for property-based testing.
---
--- This generator creates job containers with randomized properties suitable for testing
--- JSON serialization roundtrips and other property-based tests.
 gen :: (MonadGen m) => m JobContainer
 gen = do
   credentials <- Gen.maybe genTextMap

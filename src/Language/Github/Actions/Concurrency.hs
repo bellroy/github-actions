@@ -74,7 +74,6 @@ instance ToJSON Concurrency where
         "cancel-in-progress" .= cancelInProgress
       ]
 
--- | Generate a random 'Concurrency' for property-based testing.
 gen :: (MonadGen m) => m Concurrency
 gen = do
   group <- Gen.maybe (Gen.text (Range.linear 1 5) Gen.alphaNum)

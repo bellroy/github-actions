@@ -145,10 +145,6 @@ instance ToJSON JobStrategy where
               [fromString (Text.unpack k) .= v]
           )
 
--- | Generate a random 'JobStrategy' for property-based testing.
---
--- This generator creates job strategies with randomized properties suitable for testing
--- JSON serialization roundtrips and other property-based tests.
 gen :: (MonadGen m) => m JobStrategy
 gen = do
   exclude <- Gen.maybe $ Gen.list (Range.linear 1 3) genText

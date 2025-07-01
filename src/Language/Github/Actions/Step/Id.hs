@@ -66,7 +66,6 @@ newtype StepId = StepId Text
   deriving stock (Eq, Generic, Ord, Show)
   deriving newtype (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 
--- | Generate a random 'StepId' for property-based testing.
 gen :: (MonadGen m) => m StepId
 gen = StepId <$> Gen.text (Range.linear 1 5) Gen.alphaNum
 

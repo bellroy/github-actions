@@ -143,10 +143,6 @@ instance ToJSON Workflow where
       monoidToMaybe :: (Eq a, Monoid a) => a -> Maybe a
       monoidToMaybe a = if a == mempty then Nothing else Just a
 
--- | Generate a random 'Workflow' for property-based testing.
---
--- This generator creates workflows with randomized properties suitable for testing
--- JSON serialization roundtrips and other property-based tests.
 gen :: (MonadGen m) => m Workflow
 gen = do
   concurrency <- Gen.maybe Concurrency.gen

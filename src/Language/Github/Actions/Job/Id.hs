@@ -66,7 +66,6 @@ newtype JobId = JobId Text
   deriving stock (Eq, Generic, Ord, Show)
   deriving newtype (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 
--- | Generate a random 'JobId' for property-based testing.
 gen :: (MonadGen m) => m JobId
 gen = JobId <$> Gen.text (Range.linear 1 5) Gen.alphaNum
 

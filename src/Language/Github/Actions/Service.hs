@@ -108,10 +108,6 @@ instance ToJSON Service where
           ("volumes" .=) <$> volumes
         ]
 
--- | Generate a random 'Service' for property-based testing.
---
--- This generator creates services with randomized properties suitable for testing
--- JSON serialization roundtrips and other property-based tests.
 gen :: (MonadGen m) => m Service
 gen = do
   credentials <- Gen.maybe genTextMap
