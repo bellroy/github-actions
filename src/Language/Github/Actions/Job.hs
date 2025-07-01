@@ -3,6 +3,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
+-- |
+-- Module      : Language.Github.Actions.Job
+-- Description : GitHub Actions job definition and serialization
+-- Copyright   : (c) 2025 Bellroy Pty Ltd
+-- License     : BSD-3-Clause
+-- Maintainer  : Bellroy Tech Team <haskell@bellroy.com>
+--
+-- This module provides the 'Job' type for representing individual jobs within GitHub Actions workflows.
+-- Jobs are collections of steps that execute on the same runner.
+--
+-- A job defines the environment, dependencies, and steps that should be executed as part of a workflow.
+-- Jobs can run in parallel or be configured to depend on other jobs.
+--
+-- For more information about GitHub Actions job syntax, see:
+-- <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobs>
 module Language.Github.Actions.Job
   ( Job (..),
     gen,
@@ -41,25 +56,65 @@ import qualified Language.Github.Actions.Service.Id as ServiceId
 import Language.Github.Actions.Step (Step)
 import qualified Language.Github.Actions.Step as Step
 
+-- | A job within a GitHub Actions workflow.
+--
+-- A job is a set of steps that execute on the same runner. Jobs can run in parallel
+-- or sequentially depending on their dependencies. Each job runs in its own virtual
+-- environment specified by the runner.
+--
+-- Example usage:
+--
+-- @
+-- import Language.Github.Actions.Job
+-- import qualified Language.Github.Actions.Step as Step
+--
+-- myJob :: Job
+-- myJob = new
+--  { jobName = Just "Build and Test"
+--  , runsOn = Just "ubuntu-latest"
+--  , steps = Just $ Step.new :| []
+--  }
+-- @
+--
+-- For more details, see: <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobs>
 data Job = Job
-  { concurrency :: Maybe Concurrency,
+  { -- | Concurrency settings for this job
+    concurrency :: Maybe Concurrency,
+    -- | Container to run the job in
     container :: Maybe JobContainer,
+    -- | Whether to continue on step failure
     continueOnError :: Maybe Bool,
+    -- | Default settings for steps in this job
     defaults :: Maybe Defaults,
+    -- | Environment variables for this job
     env :: Map Text Text,
+    -- | Deployment environment settings
     environment :: Maybe JobEnvironment,
+    -- | Display name for the job
     jobName :: Maybe Text,
+    -- | Jobs this job depends on
     needs :: Maybe (NonEmpty JobId),
+    -- | Outputs from this job
     outputs :: Map Text Text,
+    -- | Permissions for this job
     permissions :: Maybe Permissions,
+    -- | Condition for running this job
     runIf :: Maybe Text,
+    -- | Runner type (e.g., "ubuntu-latest")
     runsOn :: Maybe Text,
+    -- | Secrets available to this job
     secrets :: Map Text Text,
+    -- | Services to run alongside this job
     services :: Map ServiceId Service,
+    -- | Steps to execute in this job
     steps :: Maybe (NonEmpty Step),
+    -- | Matrix strategy for this job
     strategy :: Maybe JobStrategy,
+    -- | Timeout for the job in minutes
     timeoutMinutes :: Maybe Int,
+    -- | Reusable workflow to call
     uses :: Maybe Text,
+    -- | Inputs for reusable workflows
     with :: Map Text Text
   }
   deriving stock (Eq, Generic, Ord, Show)
@@ -141,6 +196,20 @@ gen = do
     genText = Gen.text (Range.linear 1 5) Gen.alphaNum
     genTextMap = Gen.map (Range.linear 1 5) $ liftA2 (,) genText genText
 
+-- | Create a new empty 'Job' with default values.
+--
+-- This provides a minimal job that can be extended with specific steps,
+-- runner configuration, and other settings.
+--
+-- Example:
+--
+-- @
+-- buildJob = new
+--   { jobName = Just "Build"
+--   , runsOn = Just "ubuntu-latest"
+--   , steps = Just $ checkoutStep :| [buildStep]
+--   }
+-- @
 new :: Job
 new =
   Job

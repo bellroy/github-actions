@@ -4,6 +4,24 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+-- |
+-- Module      : Language.Github.Actions.Job.Strategy
+-- Description : Matrix strategies for GitHub Actions jobs
+-- Copyright   : (c) 2025 Bellroy Pty Ltd
+-- License     : BSD-3-Clause
+-- Maintainer  : Bellroy Tech Team <haskell@bellroy.com>
+--
+-- This module provides the 'JobStrategy' type for configuring matrix strategies
+-- that allow jobs to run multiple times with different configurations.
+--
+-- Matrix strategies are useful for testing across multiple:
+-- * Operating systems (Ubuntu, Windows, macOS)
+-- * Language versions (Node 16, 18, 20)
+-- * Database versions (PostgreSQL 12, 13, 14)
+-- * Or any other configurable parameters
+--
+-- For more information about GitHub Actions matrix strategies, see:
+-- <https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/running-variations-of-jobs-in-a-workflow>
 module Language.Github.Actions.Job.Strategy
   ( JobStrategy (..),
     gen,
@@ -24,11 +42,57 @@ import Hedgehog (MonadGen)
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 
+-- | Matrix strategy configuration for running job variations.
+--
+-- Matrix strategies define how to run a job multiple times with different
+-- configurations. The matrix creates a cross-product of all variable combinations,
+-- with options to include additional combinations or exclude specific ones.
+--
+-- Example usage:
+--
+-- @
+-- import Language.Github.Actions.Job.Strategy
+-- import qualified Data.Map as Map
+-- import qualified Data.Aeson as Aeson
+--
+-- -- Simple OS and Node version matrix
+-- nodeMatrix :: JobStrategy
+-- nodeMatrix = JobStrategy
+--  { exclude = Nothing
+--  , failFast = Just False
+--  , include = Nothing
+--  , maxParallel = Just 3
+--  , otherVariables = Just $ Map.fromList
+--      [ ("os", Aeson.toJSON ["ubuntu-latest", "windows-latest", "macos-latest"])
+--      , ("node-version", Aeson.toJSON ["16", "18", "20"])
+--      ]
+--  }
+--
+-- -- Matrix with exclusions and includes
+-- complexMatrix :: JobStrategy
+-- complexMatrix = JobStrategy
+--  { exclude = Just ["{ \"os\": \"windows-latest\", \"node-version\": \"16\" }"]
+--  , failFast = Just True
+--  , include = Just ["{ \"os\": \"ubuntu-latest\", \"node-version\": \"21\", \"experimental\": true }"]
+--  , maxParallel = Nothing
+--  , otherVariables = Just $ Map.fromList
+--      [ ("os", Aeson.toJSON ["ubuntu-latest", "windows-latest"])
+--      , ("node-version", Aeson.toJSON ["18", "20"])
+--      ]
+--  }
+-- @
+--
+-- For more details, see: <https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/running-variations-of-jobs-in-a-workflow>
 data JobStrategy = JobStrategy
-  { exclude :: Maybe [Text],
+  { -- | Matrix combinations to exclude
+    exclude :: Maybe [Text],
+    -- | Whether to cancel all jobs when one fails
     failFast :: Maybe Bool,
+    -- | Additional matrix combinations to include
     include :: Maybe [Text],
+    -- | Maximum number of parallel jobs
     maxParallel :: Maybe Int,
+    -- | Matrix variables (os, version, etc.)
     otherVariables :: Maybe (Map Text Aeson.Value)
   }
   deriving stock (Eq, Generic, Ord, Show)
