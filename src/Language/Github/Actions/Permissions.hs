@@ -115,8 +115,6 @@ parsePermissionType t =
     inverseMap renderPermissionType t
 
 -- | Permission levels that can be granted for each permission type.
---
--- Permissions follow a hierarchy where Write typically includes Read access.
 data Permission
   = -- | No access granted
     None
