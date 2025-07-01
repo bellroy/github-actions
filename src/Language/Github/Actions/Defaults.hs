@@ -38,9 +38,8 @@ import qualified Language.Github.Actions.Shell as Shell
 -- | Default settings for steps within a job or jobs within a workflow.
 --
 -- Defaults provide a convenient way to set common configuration that applies to
--- multiple steps without having to repeat the same settings everywhere.
+-- both Jobs and Workflows without having to repeat the same settings everywhere.
 --
--- Currently supports defaults for the 'run' command configuration:
 --
 -- Example usage:
 --
@@ -59,7 +58,7 @@ import qualified Language.Github.Actions.Shell as Shell
 -- workdirDefaults :: Defaults
 -- workdirDefaults = Defaults
 --  { runShell = Nothing
---  , runWorkingDirectory = Just "\/src"
+--  , runWorkingDirectory = Just "/src"
 --  }
 -- @
 --
