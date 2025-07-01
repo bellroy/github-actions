@@ -1016,12 +1016,12 @@ Workflow
       fromList
         [ PushTrigger
             PushTriggerAttributes
-              { pushBranches = Nothing
-              , pushBranchesIgnore =
+              { branches = Nothing
+              , branchesIgnore =
                   Just ("refs/tags/*_staging" :| [ "refs/tags/*_production" ])
-              , pushPaths = Nothing
-              , pushPathsIgnore = Nothing
-              , pushTags = Nothing
+              , paths = Nothing
+              , pathsIgnore = Nothing
+              , tags = Nothing
               }
         ]
   , permissions = Nothing

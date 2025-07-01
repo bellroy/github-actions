@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -34,21 +35,21 @@
 -- -- Trigger on push to main branch
 -- pushTrigger :: WorkflowTrigger
 -- pushTrigger = PushTrigger $ PushTriggerAttributes
---   { pushBranches = Just ("main" :| [])
---   , pushBranchesIgnore = Nothing
---   , pushPaths = Nothing
---   , pushPathsIgnore = Nothing
---   , pushTags = Nothing
+--   { branches = Just ("main" :| [])
+--   , branchesIgnore = Nothing
+--   , paths = Nothing
+--   , pathsIgnore = Nothing
+--   , tags = Nothing
 --   }
 --
 -- -- Trigger on pull request opened or synchronized
 -- prTrigger :: WorkflowTrigger
 -- prTrigger = PullRequestTrigger $ PullRequestTriggerAttributes
---   { pullRequestActivityTypes = Just (PullRequestOpened :| [PullRequestSynchronize])
---   , pullRequestBranches = Nothing
---   , pullRequestBranchesIgnore = Nothing
---   , pullRequestPaths = Nothing
---   , pullRequestPathsIgnore = Nothing
+--   { activityTypes = Just (PullRequestOpened :| [PullRequestSynchronize])
+--   , branches = Nothing
+--   , branchesIgnore = Nothing
+--   , paths = Nothing
+--   , pathsIgnore = Nothing
 --   }
 -- @
 --
@@ -366,11 +367,11 @@ parseMilestoneActivityType t =
 -- -- Trigger on pull request creation and updates
 -- ciTrigger :: PullRequestActivityType
 -- ciTrigger = PullRequestTrigger $ PullRequestTriggerAttributes
---  { pullRequestActivityTypes = Just (PullRequestOpened :| [PullRequestSynchronize])
---  , pullRequestBranches = Nothing
---  , pullRequestBranchesIgnore = Nothing
---  , pullRequestPaths = Nothing
---  , pullRequestPathsIgnore = Nothing
+--  { activityTypes = Just (PullRequestOpened :| [PullRequestSynchronize])
+--  , branches = Nothing
+--  , branchesIgnore = Nothing
+--  , paths = Nothing
+--  , pathsIgnore = Nothing
 --  }
 -- @
 --
@@ -458,32 +459,32 @@ parsePullRequestActivityType t =
     inverseMap renderPullRequestActivityType t
 
 data PullRequestTriggerAttributes = PullRequestTriggerAttributes
-  { pullRequestActivityTypes :: Maybe (NonEmpty PullRequestActivityType),
-    pullRequestBranches :: Maybe (NonEmpty Text),
-    pullRequestBranchesIgnore :: Maybe (NonEmpty Text),
-    pullRequestPaths :: Maybe (NonEmpty Text),
-    pullRequestPathsIgnore :: Maybe (NonEmpty Text)
+  { activityTypes :: Maybe (NonEmpty PullRequestActivityType),
+    branches :: Maybe (NonEmpty Text),
+    branchesIgnore :: Maybe (NonEmpty Text),
+    paths :: Maybe (NonEmpty Text),
+    pathsIgnore :: Maybe (NonEmpty Text)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON PullRequestTriggerAttributes where
   parseJSON = Aeson.withObject "PullRequestTriggerAttributes" $ \o -> do
-    pullRequestActivityTypes <- o .:? "types"
-    pullRequestBranches <- o .:? "branches"
-    pullRequestBranchesIgnore <- o .:? "branches-ignore"
-    pullRequestPaths <- o .:? "paths"
-    pullRequestPathsIgnore <- o .:? "paths-ignore"
+    activityTypes <- o .:? "types"
+    branches <- o .:? "branches"
+    branchesIgnore <- o .:? "branches-ignore"
+    paths <- o .:? "paths"
+    pathsIgnore <- o .:? "paths-ignore"
     pure PullRequestTriggerAttributes {..}
 
 instance ToJSON PullRequestTriggerAttributes where
   toJSON PullRequestTriggerAttributes {..} =
     Aeson.object $
       catMaybes
-        [ ("branches" .=) <$> pullRequestBranches,
-          ("branches-ignore" .=) <$> pullRequestBranchesIgnore,
-          ("paths" .=) <$> pullRequestPaths,
-          ("paths-ignore" .=) <$> pullRequestPathsIgnore,
-          ("types" .=) <$> pullRequestActivityTypes
+        [ ("branches" .=) <$> branches,
+          ("branches-ignore" .=) <$> branchesIgnore,
+          ("paths" .=) <$> paths,
+          ("paths-ignore" .=) <$> pathsIgnore,
+          ("types" .=) <$> activityTypes
         ]
 
 data PullRequestReviewActivityType
@@ -590,32 +591,32 @@ parsePullRequestTargetActivityType t =
     inverseMap renderPullRequestTargetActivityType t
 
 data PullRequestTargetTriggerAttributes = PullRequestTargetTriggerAttributes
-  { pullRequestTargetActivityTypes :: Maybe (NonEmpty PullRequestTargetActivityType),
-    pullRequestTargetBranches :: Maybe (NonEmpty Text),
-    pullRequestTargetBranchesIgnore :: Maybe (NonEmpty Text),
-    pullRequestTargetPaths :: Maybe (NonEmpty Text),
-    pullRequestTargetPathsIgnore :: Maybe (NonEmpty Text)
+  { activityTypes :: Maybe (NonEmpty PullRequestTargetActivityType),
+    branches :: Maybe (NonEmpty Text),
+    branchesIgnore :: Maybe (NonEmpty Text),
+    paths :: Maybe (NonEmpty Text),
+    pathsIgnore :: Maybe (NonEmpty Text)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON PullRequestTargetTriggerAttributes where
   parseJSON = Aeson.withObject "PullRequestTargetTriggerAttributes" $ \o -> do
-    pullRequestTargetActivityTypes <- o .:? "types"
-    pullRequestTargetBranches <- o .:? "branches"
-    pullRequestTargetBranchesIgnore <- o .:? "branches-ignore"
-    pullRequestTargetPaths <- o .:? "paths"
-    pullRequestTargetPathsIgnore <- o .:? "paths-ignore"
+    activityTypes <- o .:? "types"
+    branches <- o .:? "branches"
+    branchesIgnore <- o .:? "branches-ignore"
+    paths <- o .:? "paths"
+    pathsIgnore <- o .:? "paths-ignore"
     pure PullRequestTargetTriggerAttributes {..}
 
 instance ToJSON PullRequestTargetTriggerAttributes where
   toJSON PullRequestTargetTriggerAttributes {..} =
     Aeson.object $
       catMaybes
-        [ ("branches" .=) <$> pullRequestTargetBranches,
-          ("branches-ignore" .=) <$> pullRequestTargetBranchesIgnore,
-          ("paths" .=) <$> pullRequestTargetPaths,
-          ("paths-ignore" .=) <$> pullRequestTargetPathsIgnore,
-          ("types" .=) <$> pullRequestTargetActivityTypes
+        [ ("branches" .=) <$> branches,
+          ("branches-ignore" .=) <$> branchesIgnore,
+          ("paths" .=) <$> paths,
+          ("paths-ignore" .=) <$> pathsIgnore,
+          ("types" .=) <$> activityTypes
         ]
 
 -- | Configuration attributes for push trigger events.
@@ -630,57 +631,57 @@ instance ToJSON PullRequestTargetTriggerAttributes where
 -- -- Trigger on pushes to main or develop branches
 -- pushMainDevelop :: PushTriggerAttributes
 -- pushMainDevelop = PushTriggerAttributes
---  { pushBranches = Just ("main" :| ["develop"])
---  , pushBranchesIgnore = Nothing
---  , pushPaths = Nothing
---  , pushPathsIgnore = Nothing
---  , pushTags = Nothing
+--  { branches = Just ("main" :| ["develop"])
+--  , branchesIgnore = Nothing
+--  , paths = Nothing
+--  , pathsIgnore = Nothing
+--  , tags = Nothing
 --  }
 --
 -- -- Trigger on pushes to docs directory, ignoring gh-pages
 -- pushDocsOnly :: PushTriggerAttributes
 -- pushDocsOnly = PushTriggerAttributes
---  { pushBranches = Nothing
---  , pushBranchesIgnore = Just ("gh-pages" :| [])
---  , pushPaths = Just ("docs\/**" :| [])
---  , pushPathsIgnore = Nothing
---  , pushTags = Nothing
+--  { branches = Nothing
+--  , branchesIgnore = Just ("gh-pages" :| [])
+--  , paths = Just ("docs\/**" :| [])
+--  , pathsIgnore = Nothing
+--  , tags = Nothing
 --  }
 -- @
 --
 -- For more details, see: <https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#push>
 data PushTriggerAttributes = PushTriggerAttributes
   { -- | Branches to include (default: all)
-    pushBranches :: Maybe (NonEmpty Text),
+    branches :: Maybe (NonEmpty Text),
     -- | Branches to exclude
-    pushBranchesIgnore :: Maybe (NonEmpty Text),
+    branchesIgnore :: Maybe (NonEmpty Text),
     -- | File paths to include (default: all)
-    pushPaths :: Maybe (NonEmpty Text),
+    paths :: Maybe (NonEmpty Text),
     -- | File paths to exclude
-    pushPathsIgnore :: Maybe (NonEmpty Text),
+    pathsIgnore :: Maybe (NonEmpty Text),
     -- | Tags to include
-    pushTags :: Maybe (NonEmpty Text)
+    tags :: Maybe (NonEmpty Text)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON PushTriggerAttributes where
   parseJSON = Aeson.withObject "PushTriggerAttributes" $ \o -> do
-    pushBranches <- o .:? "branches"
-    pushBranchesIgnore <- o .:? "branches-ignore"
-    pushPaths <- o .:? "paths"
-    pushPathsIgnore <- o .:? "paths-ignore"
-    pushTags <- o .:? "tags"
+    branches <- o .:? "branches"
+    branchesIgnore <- o .:? "branches-ignore"
+    paths <- o .:? "paths"
+    pathsIgnore <- o .:? "paths-ignore"
+    tags <- o .:? "tags"
     pure PushTriggerAttributes {..}
 
 instance ToJSON PushTriggerAttributes where
   toJSON PushTriggerAttributes {..} =
     Aeson.object $
       catMaybes
-        [ ("branches" .=) <$> pushBranches,
-          ("branches-ignore" .=) <$> pushBranchesIgnore,
-          ("paths" .=) <$> pushPaths,
-          ("paths-ignore" .=) <$> pushPathsIgnore,
-          ("tags" .=) <$> pushTags
+        [ ("branches" .=) <$> branches,
+          ("branches-ignore" .=) <$> branchesIgnore,
+          ("paths" .=) <$> paths,
+          ("paths-ignore" .=) <$> pathsIgnore,
+          ("tags" .=) <$> tags
         ]
 
 data RegistryPackageActivityType
@@ -763,92 +764,92 @@ parseWorkflowCallInputType t =
     inverseMap renderWorkflowCallInputType t
 
 data WorkflowCallInput = WorkflowCallInput
-  { workflowCallInputDescription :: Maybe Text,
-    workflowCallInputDefault :: Maybe Aeson.Value,
-    workflowCallInputRequired :: Maybe Bool,
-    workflowCallInputType :: WorkflowCallInputType
+  { description :: Maybe Text,
+    default_ :: Maybe Aeson.Value,
+    required :: Maybe Bool,
+    type_ :: WorkflowCallInputType
   }
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON WorkflowCallInput where
   parseJSON = Aeson.withObject "WorkflowCallInput" $ \o -> do
-    workflowCallInputDescription <- o .:? "description"
-    workflowCallInputDefault <- o .:? "default"
-    workflowCallInputRequired <- o .:? "required"
-    workflowCallInputType <- o .: "type"
+    description <- o .:? "description"
+    default_ <- o .:? "default"
+    required <- o .:? "required"
+    type_ <- o .: "type"
     pure WorkflowCallInput {..}
 
 instance ToJSON WorkflowCallInput where
   toJSON WorkflowCallInput {..} =
     Aeson.object $
       catMaybes
-        [ ("description" .=) <$> workflowCallInputDescription,
-          ("default" .=) <$> workflowCallInputDefault,
-          ("required" .=) <$> workflowCallInputRequired,
-          Just $ "type" .= workflowCallInputType
+        [ ("description" .=) <$> description,
+          ("default" .=) <$> default_,
+          ("required" .=) <$> required,
+          Just $ "type" .= type_
         ]
 
 data WorkflowCallOutput = WorkflowCallOutput
-  { workflowCallOutputDescription :: Maybe Text,
-    workflowCallOutputValue :: Text
+  { description :: Maybe Text,
+    value :: Text
   }
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON WorkflowCallOutput where
   parseJSON = Aeson.withObject "WorkflowCallOutput" $ \o -> do
-    workflowCallOutputDescription <- o .:? "description"
-    workflowCallOutputValue <- o .: "value"
+    description <- o .:? "description"
+    value <- o .: "value"
     pure WorkflowCallOutput {..}
 
 instance ToJSON WorkflowCallOutput where
   toJSON WorkflowCallOutput {..} =
     Aeson.object $
       catMaybes
-        [ ("description" .=) <$> workflowCallOutputDescription,
-          Just $ "value" .= workflowCallOutputValue
+        [ ("description" .=) <$> description,
+          Just $ "value" .= value
         ]
 
 data WorkflowCallSecret = WorkflowCallSecret
-  { workflowCallSecretDescription :: Maybe Text,
-    workflowCallSecretRequired :: Maybe Bool
+  { description :: Maybe Text,
+    required :: Maybe Bool
   }
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON WorkflowCallSecret where
   parseJSON = Aeson.withObject "WorkflowCallSecret" $ \o -> do
-    workflowCallSecretDescription <- o .:? "description"
-    workflowCallSecretRequired <- o .:? "required"
+    description <- o .:? "description"
+    required <- o .:? "required"
     pure WorkflowCallSecret {..}
 
 instance ToJSON WorkflowCallSecret where
   toJSON WorkflowCallSecret {..} =
     Aeson.object $
       catMaybes
-        [ ("description" .=) <$> workflowCallSecretDescription,
-          ("required" .=) <$> workflowCallSecretRequired
+        [ ("description" .=) <$> description,
+          ("required" .=) <$> required
         ]
 
 data WorkflowCallAttributes = WorkflowCallAttributes
-  { workflowCallInputs :: Maybe (Map Text WorkflowCallInput),
-    workflowCallOutputs :: Maybe (Map Text WorkflowCallOutput),
-    workflowCallSecrets :: Maybe (Map Text WorkflowCallSecret)
+  { inputs :: Maybe (Map Text WorkflowCallInput),
+    outputs :: Maybe (Map Text WorkflowCallOutput),
+    secrets :: Maybe (Map Text WorkflowCallSecret)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON WorkflowCallAttributes where
   parseJSON = Aeson.withObject "WorkflowCallAttributes" $ \o -> do
-    workflowCallInputs <- o .:? "inputs"
-    workflowCallOutputs <- o .:? "outputs"
-    workflowCallSecrets <- o .:? "secrets"
+    inputs <- o .:? "inputs"
+    outputs <- o .:? "outputs"
+    secrets <- o .:? "secrets"
     pure WorkflowCallAttributes {..}
 
 instance ToJSON WorkflowCallAttributes where
   toJSON WorkflowCallAttributes {..} =
     Aeson.object $
       catMaybes
-        [ ("inputs" .=) <$> workflowCallInputs,
-          ("outputs" .=) <$> workflowCallOutputs,
-          ("secrets" .=) <$> workflowCallSecrets
+        [ ("inputs" .=) <$> inputs,
+          ("outputs" .=) <$> outputs,
+          ("secrets" .=) <$> secrets
         ]
 
 data WorkflowDispatchInputType
@@ -874,20 +875,20 @@ instance FromJSON WorkflowDispatchInputType where
       _ -> fail [i|Unknown WorkflowDispatchInputType: #{t}|]
 
 data WorkflowDispatchInput = WorkflowDispatchInput
-  { workflowDispatchInputDescription :: Maybe Text,
-    workflowDispatchInputDefault :: Maybe Aeson.Value,
-    workflowDispatchInputRequired :: Maybe Bool,
-    workflowDispatchInputType :: Maybe WorkflowDispatchInputType
+  { description :: Maybe Text,
+    default_ :: Maybe Aeson.Value,
+    required :: Maybe Bool,
+    type_ :: Maybe WorkflowDispatchInputType
   }
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON WorkflowDispatchInput where
   parseJSON = Aeson.withObject "WorkflowDispatchInput" $ \o -> do
-    workflowDispatchInputDescription <- o .:? "description"
-    workflowDispatchInputDefault <- o .:? "default"
-    workflowDispatchInputRequired <- o .:? "required"
+    description <- o .:? "description"
+    default_ <- o .:? "default"
+    required <- o .:? "required"
     workflowDispatchInputTypeText :: Maybe Text <- o .:? "type"
-    workflowDispatchInputType <-
+    type_ <-
       maybe
         (pure Nothing)
         (const . Aeson.parseJSON $ Aeson.Object o)
@@ -898,9 +899,9 @@ instance ToJSON WorkflowDispatchInput where
   toJSON WorkflowDispatchInput {..} =
     Aeson.object $
       catMaybes
-        [ ("description" .=) <$> workflowDispatchInputDescription,
-          ("default" .=) <$> workflowDispatchInputDefault,
-          ("required" .=) <$> workflowDispatchInputRequired,
+        [ ("description" .=) <$> description,
+          ("default" .=) <$> default_,
+          ("required" .=) <$> required,
           ("type" .=)
             . ( \case
                   WorkflowDispatchInputTypeBoolean ->
@@ -914,8 +915,8 @@ instance ToJSON WorkflowDispatchInput where
                   WorkflowDispatchInputTypeString ->
                     "string"
               )
-            <$> workflowDispatchInputType,
-          workflowDispatchInputType
+            <$> type_,
+          type_
             >>= ( \case
                     WorkflowDispatchInputTypeChoice ops ->
                       Just $ "options" .= ops
@@ -925,20 +926,20 @@ instance ToJSON WorkflowDispatchInput where
         ]
 
 newtype WorkflowDispatchAttributes = WorkflowDispatchAttributes
-  { workflowDispatchInputs :: Maybe (Map Text WorkflowDispatchInput)
+  { inputs :: Maybe (Map Text WorkflowDispatchInput)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON WorkflowDispatchAttributes where
   parseJSON = Aeson.withObject "WorkflowDispatchAttributes" $ \o -> do
-    workflowDispatchInputs <- o .:? "inputs"
+    inputs <- o .:? "inputs"
     pure WorkflowDispatchAttributes {..}
 
 instance ToJSON WorkflowDispatchAttributes where
   toJSON WorkflowDispatchAttributes {..} =
     Aeson.object $
       catMaybes
-        [ ("inputs" .=) <$> workflowDispatchInputs
+        [ ("inputs" .=) <$> inputs
         ]
 
 data WorkflowRunActivityType
@@ -966,29 +967,29 @@ parseWorkflowRunActivityType t =
     inverseMap renderWorkflowRunActivityType t
 
 data WorkflowRunTriggerAttributes = WorkflowRunTriggerAttributes
-  { workflowRunActivityTypes :: NonEmpty WorkflowRunActivityType,
-    workflowRunWorkflows :: Maybe (NonEmpty Text),
-    workflowRunBranches :: Maybe (NonEmpty Text),
-    workflowRunBranchesIgnore :: Maybe (NonEmpty Text)
+  { activityTypes :: NonEmpty WorkflowRunActivityType,
+    workflows :: Maybe (NonEmpty Text),
+    branches :: Maybe (NonEmpty Text),
+    branchesIgnore :: Maybe (NonEmpty Text)
   }
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON WorkflowRunTriggerAttributes where
   parseJSON = Aeson.withObject "WorkflowRunTriggerAttributes" $ \o -> do
-    workflowRunActivityTypes <- o .: "types"
-    workflowRunWorkflows <- o .:? "workflows"
-    workflowRunBranches <- o .:? "branches"
-    workflowRunBranchesIgnore <- o .:? "branches-ignore"
+    activityTypes <- o .: "types"
+    workflows <- o .:? "workflows"
+    branches <- o .:? "branches"
+    branchesIgnore <- o .:? "branches-ignore"
     pure WorkflowRunTriggerAttributes {..}
 
 instance ToJSON WorkflowRunTriggerAttributes where
   toJSON WorkflowRunTriggerAttributes {..} =
     Aeson.object $
       catMaybes
-        [ Just $ "types" .= workflowRunActivityTypes,
-          ("workflows" .=) <$> workflowRunWorkflows,
-          ("branches" .=) <$> workflowRunBranches,
-          ("branches-ignore" .=) <$> workflowRunBranchesIgnore
+        [ Just $ "types" .= activityTypes,
+          ("workflows" .=) <$> workflows,
+          ("branches" .=) <$> branches,
+          ("branches-ignore" .=) <$> branchesIgnore
         ]
 
 -- | Comprehensive enumeration of all GitHub Actions workflow trigger events.
@@ -1011,11 +1012,11 @@ instance ToJSON WorkflowRunTriggerAttributes where
 -- -- Push trigger with branch filtering
 -- pushToMain :: WorkflowTrigger
 -- pushToMain = PushTrigger $ PushTriggerAttributes
---  { pushBranches = Just ("main" :| [])
---  , pushBranchesIgnore = Nothing
---  , pushPaths = Nothing
---  , pushPathsIgnore = Nothing
---  , pushTags = Nothing
+--  { branches = Just ("main" :| [])
+--  , branchesIgnore = Nothing
+--  , paths = Nothing
+--  , pathsIgnore = Nothing
+--  , tags = Nothing
 --  }
 --
 -- -- Issue trigger for specific activity types
@@ -1351,92 +1352,92 @@ genMap ga = Gen.map (Range.linear 1 5) $ liftA2 (,) genText ga
 
 genPullRequestTargetAttributes :: (MonadGen m) => m PullRequestTargetTriggerAttributes
 genPullRequestTargetAttributes = do
-  pullRequestTargetActivityTypes <-
+  activityTypes <-
     Gen.maybe $
       Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded
-  pullRequestTargetBranches <-
+  branches <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
-  pullRequestTargetBranchesIgnore <-
+  branchesIgnore <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
-  pullRequestTargetPaths <-
+  paths <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
-  pullRequestTargetPathsIgnore <-
+  pathsIgnore <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pure PullRequestTargetTriggerAttributes {..}
 
 genPullRequestTriggerAttributes :: (MonadGen m) => m PullRequestTriggerAttributes
 genPullRequestTriggerAttributes = do
-  pullRequestActivityTypes <-
+  activityTypes <-
     Gen.maybe $
       Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded
-  pullRequestBranches <-
+  branches <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
-  pullRequestBranchesIgnore <-
+  branchesIgnore <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
-  pullRequestPaths <-
+  paths <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
-  pullRequestPathsIgnore <-
+  pathsIgnore <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pure PullRequestTriggerAttributes {..}
 
 genPushTriggerAttributes :: (MonadGen m) => m PushTriggerAttributes
 genPushTriggerAttributes = do
-  pushBranches <-
+  branches <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
-  pushBranchesIgnore <-
+  branchesIgnore <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
-  pushPaths <-
+  paths <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
-  pushPathsIgnore <-
+  pathsIgnore <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
-  pushTags <-
+  tags <-
     Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pure PushTriggerAttributes {..}
 
 genWorkflowCallAttributes :: (MonadGen m) => m WorkflowCallAttributes
 genWorkflowCallAttributes = do
-  workflowCallInputs <- Gen.maybe $ genMap genWorkflowCallInput
-  workflowCallOutputs <- Gen.maybe $ genMap genWorkflowCallOutput
-  workflowCallSecrets <- Gen.maybe $ genMap genWorkflowCallSecret
+  inputs <- Gen.maybe $ genMap genWorkflowCallInput
+  outputs <- Gen.maybe $ genMap genWorkflowCallOutput
+  secrets <- Gen.maybe $ genMap genWorkflowCallSecret
   pure WorkflowCallAttributes {..}
 
 genWorkflowCallInput :: (MonadGen m) => m WorkflowCallInput
 genWorkflowCallInput = do
-  workflowCallInputDescription <- Gen.maybe genText
-  workflowCallInputDefault <-
+  description <- Gen.maybe genText
+  default_ <-
     Gen.maybe $
       Aeson.String
         <$> Gen.text (Range.linear 3 20) Gen.alphaNum
-  workflowCallInputRequired <- Gen.maybe Gen.bool
-  workflowCallInputType <- Gen.enumBounded
+  required <- Gen.maybe Gen.bool
+  type_ <- Gen.enumBounded
   pure WorkflowCallInput {..}
 
 genWorkflowCallOutput :: (MonadGen m) => m WorkflowCallOutput
 genWorkflowCallOutput = do
-  workflowCallOutputDescription <- Gen.maybe genText
-  workflowCallOutputValue <- genText
+  description <- Gen.maybe genText
+  value <- genText
   pure WorkflowCallOutput {..}
 
 genWorkflowCallSecret :: (MonadGen m) => m WorkflowCallSecret
 genWorkflowCallSecret = do
-  workflowCallSecretDescription <- Gen.maybe genText
-  workflowCallSecretRequired <- Gen.maybe Gen.bool
+  description <- Gen.maybe genText
+  required <- Gen.maybe Gen.bool
   pure WorkflowCallSecret {..}
 
 genWorkflowDispatchAttributes :: (MonadGen m) => m WorkflowDispatchAttributes
 genWorkflowDispatchAttributes = do
-  workflowDispatchInputs <- Gen.maybe $ genMap genWorkflowDispatchInput
+  inputs <- Gen.maybe $ genMap genWorkflowDispatchInput
   pure WorkflowDispatchAttributes {..}
 
 genWorkflowDispatchInput :: (MonadGen m) => m WorkflowDispatchInput
 genWorkflowDispatchInput = do
-  workflowDispatchInputDescription <- Gen.maybe genText
-  workflowDispatchInputDefault <-
+  description <- Gen.maybe genText
+  default_ <-
     Gen.maybe $
       Aeson.String
         <$> Gen.text (Range.linear 3 20) Gen.alphaNum
-  workflowDispatchInputRequired <- Gen.maybe Gen.bool
-  workflowDispatchInputType <- Gen.maybe genWorkflowDispatchInputType
+  required <- Gen.maybe Gen.bool
+  type_ <- Gen.maybe genWorkflowDispatchInputType
   pure WorkflowDispatchInput {..}
 
 genWorkflowDispatchInputType :: (MonadGen m) => m WorkflowDispatchInputType
@@ -1451,8 +1452,8 @@ genWorkflowDispatchInputType = do
 
 genWorkflowRunTriggerAttributes :: (MonadGen m) => m WorkflowRunTriggerAttributes
 genWorkflowRunTriggerAttributes = do
-  workflowRunActivityTypes <- Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded
-  workflowRunWorkflows <- Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
-  workflowRunBranches <- Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
-  workflowRunBranchesIgnore <- Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
+  activityTypes <- Gen.nonEmpty (Range.linear 1 3) Gen.enumBounded
+  workflows <- Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
+  branches <- Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
+  branchesIgnore <- Gen.maybe $ Gen.nonEmpty (Range.linear 1 5) genText
   pure WorkflowRunTriggerAttributes {..}
