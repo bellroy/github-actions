@@ -19,14 +19,11 @@ inverseMap f = (`Map.lookup` dict)
     dict :: Map.Map k a
     dict = Map.fromList (fmapToFst f (universe @a))
 
--- | Based on: <https://hackage.haskell.org/package/relude-1.2.2.0/docs/src/Relude.Extra.Tuple.html#fmapToFst>
-fmapToFst :: (Functor f) => (a -> b) -> f a -> f (b, a)
-fmapToFst = fmap . toFst
+    universe :: (Bounded a, Enum a) => [a]
+    universe = [minBound .. maxBound]
 
--- | Based on: <https://hackage.haskell.org/package/relude-1.2.2.0/docs/src/Relude.Enum.html#universe>
-universe :: (Bounded a, Enum a) => [a]
-universe = [minBound .. maxBound]
+    fmapToFst :: (Functor f) => (a -> b) -> f a -> f (b, a)
+    fmapToFst = fmap . toFst
 
--- | Based on: <https://hackage.haskell.org/package/relude-1.2.2.0/docs/src/Relude.Extra.Tuple.html#toFst>
-toFst :: (a -> b) -> a -> (b, a)
-toFst f a = (f a, a)
+    toFst :: (a -> b) -> a -> (b, a)
+    toFst f a = (f a, a)
