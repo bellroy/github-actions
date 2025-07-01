@@ -16,6 +16,7 @@ copyright:          Copyright (C) 2025 Bellroy Pty Ltd
 category:           Language
 build-type:         Simple
 extra-source-files:
+  CHANGELOG.md
   README.md
   test/golden/configuration-main.golden.yml
   test/golden/configuration-main.hs.txt
