@@ -15,7 +15,7 @@
 -- of GitHub Actions workflows and jobs.
 --
 -- Concurrency settings allow you to control how many workflow runs or job executions
--- can happen simultaneously, helping to prevent resource conflicts and manage costs.
+-- can happen simultaneously.
 --
 -- For more information about GitHub Actions concurrency, see:
 -- <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#concurrency>
