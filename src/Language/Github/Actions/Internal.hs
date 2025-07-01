@@ -1,20 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
--- |
--- Module      : Language.Github.Actions.Internal
--- Description : Internal utility functions for GitHub Actions library
--- Copyright   : (c) 2025 Bellroy Pty Ltd
--- License     : BSD-3-Clause
--- Maintainer  : Bellroy Tech Team <haskell@bellroy.com>
---
--- This module provides internal utility functions used throughout the GitHub Actions
--- library. These functions are not intended for external use but are exported for
--- testing and internal module dependencies.
---
--- The main utility is 'inverseMap' which creates bidirectional mappings between
--- enumeration values and their string representations, commonly used for JSON
--- serialization of activity types and other enumerated values.
 module Language.Github.Actions.Internal
   ( inverseMap,
   )
