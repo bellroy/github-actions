@@ -69,6 +69,5 @@ newtype StepId = StepId Text
 gen :: (MonadGen m) => m StepId
 gen = StepId <$> Gen.text (Range.linear 1 5) Gen.alphaNum
 
--- | Extract the text representation of a 'StepId'.
 render :: StepId -> Text
 render (StepId t) = t

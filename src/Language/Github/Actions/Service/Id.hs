@@ -68,6 +68,5 @@ newtype ServiceId = ServiceId Text
 gen :: (MonadGen m) => m ServiceId
 gen = ServiceId <$> Gen.text (Range.linear 1 5) Gen.alphaNum
 
--- | Extract the text representation of a 'ServiceId'.
 render :: ServiceId -> Text
 render (ServiceId t) = t

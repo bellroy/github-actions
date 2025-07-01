@@ -1,10 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications #-}
 
-module Language.Github.Actions.Internal
-  ( inverseMap,
-  )
-where
+module Language.Github.Actions.Internal (inverseMap) where
 
 import qualified Data.Map as Map
 
@@ -17,13 +13,4 @@ inverseMap ::
 inverseMap f = (`Map.lookup` dict)
   where
     dict :: Map.Map k a
-    dict = Map.fromList (fmapToFst f (universe @a))
-
-    universe :: (Bounded a, Enum a) => [a]
-    universe = [minBound .. maxBound]
-
-    fmapToFst :: (Functor f) => (a -> b) -> f a -> f (b, a)
-    fmapToFst = fmap . toFst
-
-    toFst :: (a -> b) -> a -> (b, a)
-    toFst f a = (f a, a)
+    dict = Map.fromList ((\a -> (f a, a)) <$> [minBound .. maxBound])

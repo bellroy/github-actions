@@ -69,6 +69,5 @@ newtype JobId = JobId Text
 gen :: (MonadGen m) => m JobId
 gen = JobId <$> Gen.text (Range.linear 1 5) Gen.alphaNum
 
--- | Extract the text representation of a 'JobId'.
 render :: JobId -> Text
 render (JobId t) = t
