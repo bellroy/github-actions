@@ -15,9 +15,10 @@ maintainer:         Bellroy Tech Team <haskell@bellroy.com>
 copyright:          Copyright (C) 2025 Bellroy Pty Ltd
 category:           Language
 build-type:         Simple
-extra-source-files:
+extra-doc-files:
   CHANGELOG.md
   README.md
+extra-source-files:
   test/golden/configuration-main.golden.yml
   test/golden/configuration-main.hs.txt
   test/golden/configuration-main.yml
