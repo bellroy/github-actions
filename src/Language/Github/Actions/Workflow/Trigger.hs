@@ -75,6 +75,8 @@ module Language.Github.Actions.Workflow.Trigger
     ReleaseActivityType (..),
     WorkflowCallAttributes (..),
     WorkflowDispatchAttributes (..),
+    WorkflowDispatchInput (..),
+    WorkflowDispatchInputType (..),
     WorkflowRunActivityType (..),
     WorkflowRunTriggerAttributes (..),
     WorkflowTrigger (..),
