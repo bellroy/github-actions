@@ -10,17 +10,13 @@
 -- License     : BSD-3-Clause
 -- Maintainer  : Bellroy Tech Team <haskell@bellroy.com>
 --
--- This module provides the 'UnstructuredValue' type for representing values
--- that can be strings, numbers, or booleans in GitHub Actions YAML files.
--- This is commonly needed when parsing @Map Text Text@ fields that GitHub
--- Actions allows to have flexible typing.
+-- This module provides the 'UnstructuredMap' type for representing a map of
+-- values that can be strings, numbers, or booleans in GitHub Actions YAML files.
 --
 -- GitHub Actions allows flexible typing in many contexts:
 -- * @retention-days: 1@ (number)
 -- * @retention-days: "1"@ (string)
--- * @if: false@ (boolean)
--- * @timeout-minutes: 30@ (number)
--- * @working-directory: "./src"@ (string)
+-- * @should-retain: false@ (boolean)
 --
 -- This type preserves the original YAML type during round-trip parsing,
 -- ensuring that numeric values remain numeric and strings remain strings.
