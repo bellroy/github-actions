@@ -59,8 +59,8 @@ library
     Language.Github.Actions.Job.Container
     Language.Github.Actions.Job.Environment
     Language.Github.Actions.Job.Id
+    Language.Github.Actions.Job.Needs
     Language.Github.Actions.Job.Strategy
-    Language.Github.Actions.JobNeeds
     Language.Github.Actions.Permissions
     Language.Github.Actions.RunIf
     Language.Github.Actions.Service

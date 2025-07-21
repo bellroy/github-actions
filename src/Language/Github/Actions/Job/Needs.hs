@@ -2,7 +2,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 
 -- |
--- Module      : Language.Github.Actions.JobNeeds
+-- Module      : Language.Github.Actions.Job.Needs
 -- Description : Job dependency specification for GitHub Actions
 -- Copyright   : (c) 2025 Bellroy Pty Ltd
 -- License     : BSD-3-Clause
@@ -18,7 +18,7 @@
 --
 -- For more information about GitHub Actions job dependencies, see:
 -- <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds>
-module Language.Github.Actions.JobNeeds
+module Language.Github.Actions.Job.Needs
   ( JobNeeds (..),
     gen,
   )

@@ -43,10 +43,10 @@ import Language.Github.Actions.Job.Container (JobContainer)
 import qualified Language.Github.Actions.Job.Container as JobContainer
 import Language.Github.Actions.Job.Environment (JobEnvironment)
 import qualified Language.Github.Actions.Job.Environment as JobEnvironment
+import Language.Github.Actions.Job.Needs (JobNeeds)
+import qualified Language.Github.Actions.Job.Needs as JobNeeds
 import Language.Github.Actions.Job.Strategy (JobStrategy)
 import qualified Language.Github.Actions.Job.Strategy as JobStrategy
-import Language.Github.Actions.JobNeeds (JobNeeds)
-import qualified Language.Github.Actions.JobNeeds as JobNeeds
 import Language.Github.Actions.Permissions (Permissions)
 import qualified Language.Github.Actions.Permissions as Permissions
 import Language.Github.Actions.RunIf (RunIf)

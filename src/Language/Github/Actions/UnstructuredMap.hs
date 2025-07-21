@@ -35,7 +35,6 @@ where
 import Data.Aeson (FromJSON, ToJSON (..), Value (..))
 import qualified Data.Aeson as Aeson
 import Data.Map (Map)
-import qualified Data.Map as Map
 import Data.Text (Text)
 import qualified Data.Text as Text
 import GHC.Generics (Generic)
