@@ -42,37 +42,17 @@ import Hedgehog (MonadGen)
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 
--- | A flexible value that can be a string, number, or boolean.
+-- | A map that can have values of string, number, or boolean.
 --
 -- This type is designed to handle the flexible typing that GitHub Actions
--- allows in YAML files, particularly in contexts where we would normally
--- parse @Map Text Text@ but need to support non-string values.
---
--- Examples:
---
--- @
--- -- String value (most common)
--- pathValue :: UnstructuredValue
--- pathValue = UnstructuredValueString "./dist"
---
--- -- Numeric value (preserves original type)
--- retentionValue :: UnstructuredValue
--- retentionValue = UnstructuredValueNumber 7
---
--- -- Boolean value
--- flagValue :: UnstructuredValue
--- flagValue = UnstructuredValueBool False
--- @
+-- allows in YAML files.
 --
 -- The type preserves the original format during round-trip serialization,
 -- so numeric inputs remain numeric in the output YAML.
 data UnstructuredValue
-  = -- | String value (e.g., @"./dist"@, @"ubuntu-latest"@)
-    UnstructuredValueString Text
-  | -- | Numeric value (e.g., @1@, @30@, @1.5@)
-    UnstructuredValueNumber Double
-  | -- | Boolean value (e.g., @true@, @false@)
-    UnstructuredValueBool Bool
+  = UnstructuredValueString Text
+  | UnstructuredValueNumber Double
+  | UnstructuredValueBool Bool
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON UnstructuredValue where
@@ -86,19 +66,6 @@ instance ToJSON UnstructuredValue where
   toJSON (UnstructuredValueNumber n) = Number (fromRational (toRational n))
   toJSON (UnstructuredValueBool b) = Bool b
 
--- | Render an UnstructuredValue as Text.
---
--- This function is essential for backwards compatibility with existing code
--- that expects @Map Text Text@ values. It allows gradual migration from
--- @Text@ to @UnstructuredValue@ while maintaining the same interface.
---
--- Examples:
---
--- @
--- renderUnstructuredValue (UnstructuredValueString "hello") == "hello"
--- renderUnstructuredValue (UnstructuredValueNumber 42.0) == "42.0"
--- renderUnstructuredValue (UnstructuredValueBool True) == "true"
--- @
 renderUnstructuredValue :: UnstructuredValue -> Text
 renderUnstructuredValue (UnstructuredValueString s) = s
 renderUnstructuredValue (UnstructuredValueNumber n) =
@@ -108,16 +75,10 @@ renderUnstructuredValue (UnstructuredValueNumber n) =
     else Text.pack (show n)
 renderUnstructuredValue (UnstructuredValueBool b) = if b then "true" else "false"
 
--- | A map of unstructured values, commonly used for flexible YAML parsing.
---
--- This newtype wraps @Map Text UnstructuredValue@ and provides appropriate
--- JSON instances for parsing GitHub Actions YAML that allows mixed types
--- in key-value mappings.
 newtype UnstructuredMap = UnstructuredMap (Map Text UnstructuredValue)
   deriving stock (Eq, Generic, Ord, Show)
   deriving newtype (FromJSON, ToJSON)
 
--- | Generate random 'UnstructuredValue' values for property testing.
 genUnstructuredValue :: (MonadGen m) => m UnstructuredValue
 genUnstructuredValue =
   Gen.choice
@@ -126,7 +87,6 @@ genUnstructuredValue =
       UnstructuredValueBool <$> Gen.bool
     ]
 
--- | Generate random 'UnstructuredMap' values for property testing.
 gen :: (MonadGen m) => m UnstructuredMap
 gen = UnstructuredMap <$> Gen.map (Range.linear 0 10) genKeyValue
   where
