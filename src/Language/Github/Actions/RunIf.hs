@@ -14,9 +14,8 @@
 -- expressions in 'if' conditions for jobs and steps.
 --
 -- Examples of valid 'if' conditions:
--- * @if: false@ - Simple boolean
--- * @if: "github.ref == 'refs/heads/main'"@ - GitHub expression
--- * @if: "\${{ success() && matrix.os == 'ubuntu-latest' }}"@ - Complex expression
+-- * @if: false@ - Boolean
+-- * @if: "github.ref == 'refs/heads/main'"@ - String
 --
 -- For more information about GitHub Actions conditional expressions, see:
 -- <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idif>
@@ -51,19 +50,13 @@ import qualified Hedgehog.Range as Range
 -- -- GitHub expression condition
 -- branchCheck :: RunIf
 -- branchCheck = RunIfString "github.ref == 'refs/heads/main'"
---
--- -- Complex expression with functions
--- complexCheck :: RunIf
--- complexCheck = RunIfString "\${{ success() && matrix.os == 'ubuntu-latest' }}"
 -- @
 --
 -- The type preserves the original format during round-trip serialization,
 -- so a boolean input remains a boolean in the output YAML.
 data RunIf
-  = -- | Boolean condition (e.g., @false@, @true@)
-    RunIfBool Bool
-  | -- | String expression (e.g., @"github.ref == 'refs/heads/main'"@)
-    RunIfString Text
+  = RunIfBool Bool
+  | RunIfString Text
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON RunIf where
@@ -75,7 +68,6 @@ instance ToJSON RunIf where
   toJSON (RunIfBool b) = Bool b
   toJSON (RunIfString s) = String s
 
--- | Generate random 'RunIf' values for property testing.
 gen :: (MonadGen m) => m RunIf
 gen =
   Gen.choice
