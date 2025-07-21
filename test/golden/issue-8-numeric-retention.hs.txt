@@ -1,0 +1,69 @@
+Workflow
+  { concurrency = Nothing
+  , defaults = Nothing
+  , env = fromList []
+  , jobs =
+      fromList
+        [ ( JobId "test"
+          , Job
+              { concurrency = Nothing
+              , container = Nothing
+              , continueOnError = Nothing
+              , defaults = Nothing
+              , env = fromList []
+              , environment = Nothing
+              , jobName = Nothing
+              , needs = Nothing
+              , outputs = fromList []
+              , permissions = Nothing
+              , runIf = Nothing
+              , runsOn = Just "ubuntu-latest"
+              , secrets = fromList []
+              , services = fromList []
+              , steps =
+                  Just
+                    (Step
+                       { continueOnError = False
+                       , env = fromList []
+                       , name = Just "Upload artifact"
+                       , run = Nothing
+                       , runIf = Nothing
+                       , shell = Nothing
+                       , stepId = Nothing
+                       , timeoutMinutes = Nothing
+                       , uses = Just "actions/upload-artifact@v4.2.0"
+                       , with =
+                           Just
+                             (StepWithEnv
+                                (UnstructuredMap
+                                   (fromList
+                                      [ ( "name" , UnstructuredValueString "test-artifact" )
+                                      , ( "path" , UnstructuredValueString "./test" )
+                                      , ( "retention-days" , UnstructuredValueNumber 1.0 )
+                                      ])))
+                       , workingDirectory = Nothing
+                       } :|
+                       [])
+              , strategy = Nothing
+              , timeoutMinutes = Nothing
+              , uses = Nothing
+              , with = fromList []
+              }
+          )
+        ]
+  , on =
+      fromList
+        [ PushTrigger
+            PushTriggerAttributes
+              { branches = Nothing
+              , branchesIgnore =
+                  Just ("refs/tags/*_staging" :| [ "refs/tags/*_production" ])
+              , paths = Nothing
+              , pathsIgnore = Nothing
+              , tags = Nothing
+              }
+        ]
+  , permissions = Nothing
+  , runName = Nothing
+  , workflowName = Just "Test Numeric Retention"
+  }

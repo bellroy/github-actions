@@ -35,6 +35,8 @@ import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
+import Language.Github.Actions.RunIf (RunIf)
+import qualified Language.Github.Actions.RunIf as RunIf
 import Language.Github.Actions.Shell (Shell)
 import qualified Language.Github.Actions.Shell as Shell
 import Language.Github.Actions.Step.Id (StepId)
@@ -82,7 +84,7 @@ data Step = Step
     -- | Command or script to run
     run :: Maybe Text,
     -- | Condition for running this step
-    runIf :: Maybe Text,
+    runIf :: Maybe RunIf,
     -- | Shell to use for running commands
     shell :: Maybe Shell,
     -- | Unique identifier for this step
@@ -139,7 +141,7 @@ gen = do
   env <- genTextMap
   name <- Gen.maybe genText
   run <- Gen.maybe genText
-  runIf <- Gen.maybe genText
+  runIf <- Gen.maybe RunIf.gen
   shell <- Gen.maybe Shell.gen
   stepId <- Gen.maybe StepId.gen
   timeoutMinutes <- Gen.maybe $ Gen.int (Range.linear 1 120)

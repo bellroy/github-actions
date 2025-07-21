@@ -50,7 +50,7 @@ test_goldenWorkflowFromYaml = do
               putStrLn $ "roundtrip " <> takeBaseName testYamlFilePath
               eitherWorkflow <- Yaml.decodeFileEither @Workflow testYamlFilePath
               either
-                (BS.writeFile outputFilePath >> (\_ -> fail "YAML decoding failed"))
+                (BS.writeFile outputFilePath >> (\e -> fail $ "YAML decoding failed: " ++ show e))
                 (\workflow -> writeOutputFiles outputFilePath haskellOutputFilePath workflow >> pure workflow)
                 $ first (encodeUtf8 . Text.pack . Yaml.prettyPrintParseException) eitherWorkflow
     writeOutputFiles :: FilePath -> FilePath -> Workflow -> IO ()

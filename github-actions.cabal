@@ -59,14 +59,17 @@ library
     Language.Github.Actions.Job.Container
     Language.Github.Actions.Job.Environment
     Language.Github.Actions.Job.Id
+    Language.Github.Actions.Job.Needs
     Language.Github.Actions.Job.Strategy
     Language.Github.Actions.Permissions
+    Language.Github.Actions.RunIf
     Language.Github.Actions.Service
     Language.Github.Actions.Service.Id
     Language.Github.Actions.Shell
     Language.Github.Actions.Step
     Language.Github.Actions.Step.Id
     Language.Github.Actions.Step.With
+    Language.Github.Actions.UnstructuredMap
     Language.Github.Actions.Workflow
     Language.Github.Actions.Workflow.Trigger
 

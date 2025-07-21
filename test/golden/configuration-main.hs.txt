@@ -18,7 +18,7 @@ Workflow
               , env = fromList []
               , environment = Nothing
               , jobName = Nothing
-              , needs = Just (JobId "validateContent" :| [])
+              , needs = Just (JobNeedsArray (JobId "validateContent" :| []))
               , outputs = fromList []
               , permissions = Nothing
               , runIf = Nothing
@@ -34,7 +34,8 @@ Workflow
                        , run = Nothing
                        , runIf =
                            Just
-                             "github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable'"
+                             (RunIfString
+                                "github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable'")
                        , shell = Nothing
                        , stepId = Nothing
                        , timeoutMinutes = Nothing
@@ -42,10 +43,11 @@ Workflow
                        , with =
                            Just
                              (StepWithEnv
-                                (fromList
-                                   [ ( "fetch-depth" , "0" )
-                                   , ( "token" , "${{ env.GH_TOKEN }}" )
-                                   ]))
+                                (UnstructuredMap
+                                   (fromList
+                                      [ ( "fetch-depth" , UnstructuredValueString "0" )
+                                      , ( "token" , UnstructuredValueString "${{ env.GH_TOKEN }}" )
+                                      ])))
                        , workingDirectory = Nothing
                        } :|
                        [ Step
@@ -55,7 +57,8 @@ Workflow
                            , run = Nothing
                            , runIf =
                                Just
-                                 "github.ref != 'refs/heads/master' && github.ref != 'refs/heads/stable'"
+                                 (RunIfString
+                                    "github.ref != 'refs/heads/master' && github.ref != 'refs/heads/stable'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -63,10 +66,13 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList
-                                       [ ( "fetch-depth" , "1" )
-                                       , ( "token" , "${{ env.GH_TOKEN }}" )
-                                       ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "fetch-depth" , UnstructuredValueString "1" )
+                                          , ( "token"
+                                            , UnstructuredValueString "${{ env.GH_TOKEN }}"
+                                            )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -91,7 +97,7 @@ Workflow
                            , run =
                                Just
                                  "echo \"DESTINATION=Staging Environment\" >> $GITHUB_ENV\necho \"ENVIRONMENT=staging\" >> $GITHUB_ENV\n"
-                           , runIf = Just "github.ref == 'refs/heads/master'"
+                           , runIf = Just (RunIfString "github.ref == 'refs/heads/master'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -106,7 +112,7 @@ Workflow
                            , run =
                                Just
                                  "echo \"DESTINATION=Production Environment\" >> $GITHUB_ENV\necho \"ENVIRONMENT=production\" >> $GITHUB_ENV\n"
-                           , runIf = Just "github.ref == 'refs/heads/stable'"
+                           , runIf = Just (RunIfString "github.ref == 'refs/heads/stable'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -127,12 +133,16 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList
-                                       [ ( "bellroy-nix-cache-access" , "none" )
-                                       , ( "nix-config-access-tokens"
-                                         , "github.com=${{ secrets.READ_HASKELL_REPO_PAT }}"
-                                         )
-                                       ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "bellroy-nix-cache-access"
+                                            , UnstructuredValueString "none"
+                                            )
+                                          , ( "nix-config-access-tokens"
+                                            , UnstructuredValueString
+                                                "github.com=${{ secrets.READ_HASKELL_REPO_PAT }}"
+                                            )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -179,7 +189,13 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList [ ( "path" , "${{ env.GIT_REPOSITORY_PATH }}" ) ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "path"
+                                            , UnstructuredValueString
+                                                "${{ env.GIT_REPOSITORY_PATH }}"
+                                            )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -206,7 +222,8 @@ Workflow
                            , run =
                                Just
                                  "set +e\nIFS= output=$(./scripts/check_configuration_csvs_sorted 2>&1)\nstatus=$?\n\nif (($status)); then\n  echo \"Configuration CSV files are not sorted:\" >>/tmp/pr-comment.txt\n  echo \"\" >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  echo $output >>/tmp/pr-comment.txt\n  echo \"\\`\\`\\`\" >>/tmp/pr-comment.txt\n  exit $status\nelse\n  echo \"All configuration CSV files are sorted.\"\nfi\n"
-                           , runIf = Just "steps.check_changes.outputs.csv_changed == '1'"
+                           , runIf =
+                               Just (RunIfString "steps.check_changes.outputs.csv_changed == '1'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -227,11 +244,15 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList
-                                       [ ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
-                                       , ( "tool-name" , "byproduct" )
-                                       , ( "tool-version" , "latest" )
-                                       ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "token"
+                                            , UnstructuredValueString
+                                                "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
+                                            )
+                                          , ( "tool-name" , UnstructuredValueString "byproduct" )
+                                          , ( "tool-version" , UnstructuredValueString "latest" )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -247,11 +268,15 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList
-                                       [ ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
-                                       , ( "tool-name" , "gitapult" )
-                                       , ( "tool-version" , "latest" )
-                                       ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "token"
+                                            , UnstructuredValueString
+                                                "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
+                                            )
+                                          , ( "tool-name" , UnstructuredValueString "gitapult" )
+                                          , ( "tool-version" , UnstructuredValueString "latest" )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -267,11 +292,17 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList
-                                       [ ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
-                                       , ( "tool-name" , "config-rules-cli" )
-                                       , ( "tool-version" , "latest" )
-                                       ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "token"
+                                            , UnstructuredValueString
+                                                "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
+                                            )
+                                          , ( "tool-name"
+                                            , UnstructuredValueString "config-rules-cli"
+                                            )
+                                          , ( "tool-version" , UnstructuredValueString "latest" )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -287,11 +318,15 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList
-                                       [ ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
-                                       , ( "tool-name" , "powerful-owl" )
-                                       , ( "tool-version" , "latest" )
-                                       ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "token"
+                                            , UnstructuredValueString
+                                                "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
+                                            )
+                                          , ( "tool-name" , UnstructuredValueString "powerful-owl" )
+                                          , ( "tool-version" , UnstructuredValueString "latest" )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -376,7 +411,7 @@ Workflow
                            , run =
                                Just
                                  "set +e\nIFS= output=$(./gitapult changeset --git_root \"$GITHUB_WORKSPACE\" --from \"${{ env.MERGE_BASE }}\" | ./byproduct validate --markdown 2>&1)\nstatus=$?\n\nif (($status)); then\n  echo $output >>/tmp/pr-comment.txt\n  exit $status\nelse\n  echo \"Byproduct validation succeeded.\"\nfi\n"
-                           , runIf = Just "env.PR_NUMBER != 0"
+                           , runIf = Just (RunIfString "env.PR_NUMBER != 0")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -468,7 +503,8 @@ Workflow
                                  "if [ $(git status shipping/tests --porcelain=v1 | wc -l) -gt 0 ]\nthen\n  git add shipping/tests\n  git commit -m \"Update shipping tests\"\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nfi\n"
                            , runIf =
                                Just
-                                 "env.PR_NUMBER != 0 && github.ref != 'refs/heads/stable' && github.ref != 'refs/heads/master'"
+                                 (RunIfString
+                                    "env.PR_NUMBER != 0 && github.ref != 'refs/heads/stable' && github.ref != 'refs/heads/master'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -515,7 +551,8 @@ Workflow
                                  "if [ $(git status promotions/tests --porcelain=v1 | wc -l) -gt 0 ]\nthen\n  git add promotions/tests\n  git commit -m \"Update promotion tests\"\n  echo \"GENERATED_ANOTHER_COMMIT=true\" >> $GITHUB_ENV\nfi\n"
                            , runIf =
                                Just
-                                 "env.PR_NUMBER != 0 && github.ref != 'refs/heads/stable' && github.ref != 'refs/heads/master'"
+                                 (RunIfString
+                                    "env.PR_NUMBER != 0 && github.ref != 'refs/heads/stable' && github.ref != 'refs/heads/master'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -531,7 +568,8 @@ Workflow
                            , run =
                                Just
                                  "git push --set-upstream origin HEAD\n\ngh run cancel ${{ github.run_id }}\ngh run watch ${{ github.run_id }}\n"
-                           , runIf = Just "env.GENERATED_ANOTHER_COMMIT == 'true'"
+                           , runIf =
+                               Just (RunIfString "env.GENERATED_ANOTHER_COMMIT == 'true'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -563,7 +601,8 @@ Workflow
                                  "echo \"COMMIT_CHANGES<<EOF\" >> $GITHUB_ENV\necho \"$(git log --oneline --format=\\\"%s\\\" $(git tag -l [0-9]*_${{ env.ENVIRONMENT }} | tail -n 1)..${{ steps.extract_branch.outputs.branch }} | grep -v 'Merge pull request' | grep -v \"Merge branch 'master' into\" | sed -e 's/^\"//' -e 's/\"$//' | cat)\" >> $GITHUB_ENV\necho \"EOF\" >> $GITHUB_ENV\n"
                            , runIf =
                                Just
-                                 "github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master'"
+                                 (RunIfString
+                                    "github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master'")
                            , shell = Just (Bash Nothing)
                            , stepId = Just (StepId "extract_changes")
                            , timeoutMinutes = Nothing
@@ -580,7 +619,8 @@ Workflow
                            , run = Nothing
                            , runIf =
                                Just
-                                 "github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master'"
+                                 (RunIfString
+                                    "github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master'")
                            , shell = Nothing
                            , stepId = Just (StepId "slack-deploy")
                            , timeoutMinutes = Nothing
@@ -590,12 +630,16 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList
-                                       [ ( "channel-id" , "${{ env.SLACK_CHANNEL_ID }}" )
-                                       , ( "payload"
-                                         , "{\n  \"text\": \":loudspeaker: *${{ github.actor }}* is deploying *${{ env.SYSTEM_NAME }}* to *${{ env.DESTINATION }}* from *${{ steps.extract_branch.outputs.branch }}*\",\n  \"attachments\": [\n    {\n      \"fallback\": \"Deployment summary\",\n      \"color\": \"ffd966\",\n      \"fields\": [\n        {\n          \"title\": \"What is being deployed\",\n          \"value\": ${{ toJSON(env.COMMIT_CHANGES) }},\n          \"short\": false\n        },\n        {\n          \"title\": \"Status\",\n          \"short\": true,\n          \"value\": \"In Progress\"\n        }\n      ]\n    }\n  ]\n}\n"
-                                         )
-                                       ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "channel-id"
+                                            , UnstructuredValueString "${{ env.SLACK_CHANNEL_ID }}"
+                                            )
+                                          , ( "payload"
+                                            , UnstructuredValueString
+                                                "{\n  \"text\": \":loudspeaker: *${{ github.actor }}* is deploying *${{ env.SYSTEM_NAME }}* to *${{ env.DESTINATION }}* from *${{ steps.extract_branch.outputs.branch }}*\",\n  \"attachments\": [\n    {\n      \"fallback\": \"Deployment summary\",\n      \"color\": \"ffd966\",\n      \"fields\": [\n        {\n          \"title\": \"What is being deployed\",\n          \"value\": ${{ toJSON(env.COMMIT_CHANGES) }},\n          \"short\": false\n        },\n        {\n          \"title\": \"Status\",\n          \"short\": true,\n          \"value\": \"In Progress\"\n        }\n      ]\n    }\n  ]\n}\n"
+                                            )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -605,7 +649,7 @@ Workflow
                            , run =
                                Just
                                  "set -e\n# XXX: Gitapult cannot distinguish datasets, so we push all data to\n# both endpoints and allow the server to decide what to do.\n# Kafka Webhooks accepts all datasets at once\n./gitapult run \\\n  --git_root \"$GITHUB_WORKSPACE\" \\\n  --authorization_token \"$KW_STAGING_API_KEY\" \\\n  --changeset_url \"$KW_STAGING_BASE_URL/gitapult/configuration/records\" \\\n  --revision_url \"$KW_STAGING_BASE_URL/gitapult/configuration/revision\" \\\n  --api_key \\\n  --compress \\\n  --max-payload-bytes 3000000\n\n# XXX: V3 doesn't care about rendering data, but it is too large to send.\n# As at 2024-02-14 gitapult does not support selecting which data to send.\ngit -C \"$GIT_REPOSITORY_PATH\" rm feeds/rendering_data/.gitapult.json\n./gitapult run \\\n  --git_root \"$GITHUB_WORKSPACE\" \\\n  --authorization_token \"$SF_STAGING_API_KEY\" \\\n  --changeset_url \"$SF_STAGING_BASE_URL/api/v1/configuration/shipping\" \\\n  --revision_url \"$SF_STAGING_BASE_URL/api/v1/configuration/shipping/revisions\" && \\\ngit -C \"$GIT_REPOSITORY_PATH\" restore --staged feeds/rendering_data/.gitapult.json\ngit -C \"$GIT_REPOSITORY_PATH\" restore feeds/rendering_data/.gitapult.json\n"
-                           , runIf = Just "github.ref == 'refs/heads/master'"
+                           , runIf = Just (RunIfString "github.ref == 'refs/heads/master'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -620,7 +664,8 @@ Workflow
                            , run =
                                Just
                                  "git tag \"${{ join(steps.current-time.outputs.*, '\\n') }}_staging\" && git push --tags\n"
-                           , runIf = Just "success() && github.ref == 'refs/heads/master'"
+                           , runIf =
+                               Just (RunIfString "success() && github.ref == 'refs/heads/master'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -635,7 +680,7 @@ Workflow
                            , run =
                                Just
                                  "curl -X POST -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls -d '{\"head\":\"master\",\"base\":\"stable\",\"title\":\"Merge branch master into stable\",\"body\":\"This PR was automatically generated by CI.\"}'\nPR_URL=$(curl -sX GET -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls\\?head\\=bellroy:master\\&base\\=stable | jq -r '.[0].html_url | select(length>0)')\necho \"PR_URL=$PR_URL\" >> $GITHUB_ENV\n"
-                           , runIf = Just "github.ref == 'refs/heads/master'"
+                           , runIf = Just (RunIfString "github.ref == 'refs/heads/master'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -650,7 +695,7 @@ Workflow
                            , run =
                                Just
                                  "PR_RESPONSE=$(curl -sX GET -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls\\?head\\=bellroy:master\\&base\\=stable | jq -r '.[0]')\nPR_NUM=$(echo \"$PR_RESPONSE\" | jq -r \".number\")\nPR_ASSIGNEE=$(echo \"$PR_RESPONSE\" | jq -r \".assignee\")\nCOMMITS_RESPONSE=$(curl -sX GET -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUM/commits)\nFIRST_COMMITTER=$(curl -sX GET -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUM/commits | jq -r '. | sort_by(.commit.author.date) | .[0] | .author.login')\n# special case for squashed PRs created by trike-deploy e.g. gha-workflows\nif [[ \"$FIRST_COMMITTER\" == \"trike-deploy\" ]]; then\n    FIRST_COMMITTER=$(echo \"$COMMITS_RESPONSE\" | jq -r '. | sort_by(.commit.author.date) | .[0]' | sed -En \"s/.*Co-authored-by: (.*) <.*@.*>\\\",/\\1/p\")\nfi\nif [[ \"$PR_ASSIGNEE\" == \"null\" ]]; then\n    curl -sX POST -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token ${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}\" https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUM/assignees -d \"{\\\"assignees\\\":[\\\"$FIRST_COMMITTER\\\"]}\"\nfi\n"
-                           , runIf = Just "github.ref == 'refs/heads/master'"
+                           , runIf = Just (RunIfString "github.ref == 'refs/heads/master'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -665,7 +710,7 @@ Workflow
                            , run =
                                Just
                                  "set -e\n# XXX: Gitapult cannot distinguish datasets, so we push all data to\n# both endpoints and allow the server to decide what to do.\n# Kafka Webhooks accepts all datasets at once\n./gitapult run \\\n  --git_root \"$GITHUB_WORKSPACE\" \\\n  --authorization_token \"$KW_PRODUCTION_API_KEY\" \\\n  --changeset_url \"$KW_PRODUCTION_BASE_URL/gitapult/configuration/records\" \\\n  --revision_url \"$KW_PRODUCTION_BASE_URL/gitapult/configuration/revision\" \\\n  --api_key \\\n  --compress \\\n  --max-payload-bytes 3000000\n\n# XXX: V3 doesn't care about rendering data, but it is too large to send.\n# As at 2024-02-14 gitapult does not support selecting which data to send.\ngit -C \"$GIT_REPOSITORY_PATH\" rm feeds/rendering_data/.gitapult.json\n./gitapult run \\\n  --git_root \"$GITHUB_WORKSPACE\" \\\n  --authorization_token \"$SF_PRODUCTION_API_KEY\" \\\n  --changeset_url \"$SF_PRODUCTION_BASE_URL/api/v1/configuration/shipping\" \\\n  --revision_url \"$SF_PRODUCTION_BASE_URL/api/v1/configuration/shipping/revisions\" && \\\ngit -C \"$GIT_REPOSITORY_PATH\" restore --staged feeds/rendering_data/.gitapult.json\ngit -C \"$GIT_REPOSITORY_PATH\" restore feeds/rendering_data/.gitapult.json\n"
-                           , runIf = Just "github.ref == 'refs/heads/stable'"
+                           , runIf = Just (RunIfString "github.ref == 'refs/heads/stable'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -680,7 +725,8 @@ Workflow
                            , run =
                                Just
                                  "git tag \"${{ join(steps.current-time.outputs.*, '\\n') }}_production\" && git push --tags\n"
-                           , runIf = Just "success() && github.ref == 'refs/heads/stable'"
+                           , runIf =
+                               Just (RunIfString "success() && github.ref == 'refs/heads/stable'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -695,7 +741,7 @@ Workflow
                            , run =
                                Just
                                  "echo \"SUCCESS_MESSAGE=:tada: \\nA PR has been opened against the stable branch: ${{ env.PR_URL }}\" >> $GITHUB_ENV\necho \"SUCCESS_MESSAGE_BODY=https://github.com/${{ github.repository }}/commit/${{ github.sha }}/checks\\n\\n*PR for Production:* ${{ env.PR_URL }}\" >> $GITHUB_ENV\n"
-                           , runIf = Just "github.ref == 'refs/heads/master'"
+                           , runIf = Just (RunIfString "github.ref == 'refs/heads/master'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -710,7 +756,7 @@ Workflow
                            , run =
                                Just
                                  "echo \"SUCCESS_MESSAGE=:tada:\" >> $GITHUB_ENV\necho \"SUCCESS_MESSAGE_BODY=https://github.com/${{ github.repository }}/commit/${{ github.sha }}/checks\" >> $GITHUB_ENV\n"
-                           , runIf = Just "github.ref == 'refs/heads/stable'"
+                           , runIf = Just (RunIfString "github.ref == 'refs/heads/stable'")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -727,7 +773,8 @@ Workflow
                            , run = Nothing
                            , runIf =
                                Just
-                                 "success() && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master')"
+                                 (RunIfString
+                                    "success() && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master')")
                            , shell = Nothing
                            , stepId = Just (StepId "slack-deploy-success")
                            , timeoutMinutes = Nothing
@@ -737,13 +784,20 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList
-                                       [ ( "channel-id" , "${{ env.SLACK_CHANNEL_ID }}" )
-                                       , ( "payload"
-                                         , "{\n  \"text\": \":loudspeaker: *${{ github.actor }}* has deployed *${{ env.SYSTEM_NAME }}* to *${{ env.DESTINATION }}* from *${{ steps.extract_branch.outputs.branch }}* ${{ env.SUCCESS_MESSAGE }}\",\n  \"attachments\": [\n    {\n      \"fallback\": \"Deployment summary\",\n      \"color\": \"00ff00\",\n      \"fields\": [\n        {\n          \"title\": \"What was deployed\",\n          \"value\": ${{ toJSON(env.COMMIT_CHANGES) }},\n          \"short\": false\n        },\n        {\n          \"title\": \"Status\",\n          \"short\": true,\n          \"value\": \"Deployed\"\n        },\n        {\n          \"title\": \"Output\",\n          \"short\": false,\n          \"value\": \"${{ env.SUCCESS_MESSAGE_BODY }}\"\n        }\n      ]\n    }\n  ]\n}\n"
-                                         )
-                                       , ( "update-ts" , "${{ steps.slack-deploy.outputs.ts }}" )
-                                       ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "channel-id"
+                                            , UnstructuredValueString "${{ env.SLACK_CHANNEL_ID }}"
+                                            )
+                                          , ( "payload"
+                                            , UnstructuredValueString
+                                                "{\n  \"text\": \":loudspeaker: *${{ github.actor }}* has deployed *${{ env.SYSTEM_NAME }}* to *${{ env.DESTINATION }}* from *${{ steps.extract_branch.outputs.branch }}* ${{ env.SUCCESS_MESSAGE }}\",\n  \"attachments\": [\n    {\n      \"fallback\": \"Deployment summary\",\n      \"color\": \"00ff00\",\n      \"fields\": [\n        {\n          \"title\": \"What was deployed\",\n          \"value\": ${{ toJSON(env.COMMIT_CHANGES) }},\n          \"short\": false\n        },\n        {\n          \"title\": \"Status\",\n          \"short\": true,\n          \"value\": \"Deployed\"\n        },\n        {\n          \"title\": \"Output\",\n          \"short\": false,\n          \"value\": \"${{ env.SUCCESS_MESSAGE_BODY }}\"\n        }\n      ]\n    }\n  ]\n}\n"
+                                            )
+                                          , ( "update-ts"
+                                            , UnstructuredValueString
+                                                "${{ steps.slack-deploy.outputs.ts }}"
+                                            )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -755,7 +809,8 @@ Workflow
                            , run = Nothing
                            , runIf =
                                Just
-                                 "failure() && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master')"
+                                 (RunIfString
+                                    "failure() && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/master')")
                            , shell = Nothing
                            , stepId = Just (StepId "slack-deploy-failed")
                            , timeoutMinutes = Nothing
@@ -765,13 +820,20 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList
-                                       [ ( "channel-id" , "${{ env.SLACK_CHANNEL_ID }}" )
-                                       , ( "payload"
-                                         , "{ \"text\": \":loudspeaker: *BUILD/DEPLOY FAILURE* of *${{ env.SYSTEM_NAME }}* to *${{ env.DESTINATION }}*\",\n  \"attachments\": [\n    {\n      \"fallback\": \"Deployment summary\",\n      \"color\": \"ff0000\",\n      \"fields\": [\n        {\n          \"title\": \"What was being deployed\",\n          \"value\": ${{ toJSON(env.COMMIT_CHANGES) }},\n          \"short\": false\n        },\n        {\n          \"title\": \"Status\",\n          \"short\": true,\n          \"value\": \"Failed\"\n        },\n        {\n          \"title\": \"Who broke it\",\n          \"value\": \"${{ github.actor }}\"\n        },\n        {\n          \"title\": \"Output\",\n          \"short\": false,\n          \"value\": \"https://github.com/${{ github.repository }}/commit/${{ github.sha }}/checks\"\n        }\n      ]\n    }\n  ]\n}\n"
-                                         )
-                                       , ( "update-ts" , "${{ steps.slack-deploy.outputs.ts }}" )
-                                       ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "channel-id"
+                                            , UnstructuredValueString "${{ env.SLACK_CHANNEL_ID }}"
+                                            )
+                                          , ( "payload"
+                                            , UnstructuredValueString
+                                                "{ \"text\": \":loudspeaker: *BUILD/DEPLOY FAILURE* of *${{ env.SYSTEM_NAME }}* to *${{ env.DESTINATION }}*\",\n  \"attachments\": [\n    {\n      \"fallback\": \"Deployment summary\",\n      \"color\": \"ff0000\",\n      \"fields\": [\n        {\n          \"title\": \"What was being deployed\",\n          \"value\": ${{ toJSON(env.COMMIT_CHANGES) }},\n          \"short\": false\n        },\n        {\n          \"title\": \"Status\",\n          \"short\": true,\n          \"value\": \"Failed\"\n        },\n        {\n          \"title\": \"Who broke it\",\n          \"value\": \"${{ github.actor }}\"\n        },\n        {\n          \"title\": \"Output\",\n          \"short\": false,\n          \"value\": \"https://github.com/${{ github.repository }}/commit/${{ github.sha }}/checks\"\n        }\n      ]\n    }\n  ]\n}\n"
+                                            )
+                                          , ( "update-ts"
+                                            , UnstructuredValueString
+                                                "${{ steps.slack-deploy.outputs.ts }}"
+                                            )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -781,7 +843,7 @@ Workflow
                            , run =
                                Just
                                  "gh pr comment ${{ env.PR_NUMBER }} --body-file /tmp/pr-comment.txt || true"
-                           , runIf = Just "always() && env.PR_NUMBER != 0"
+                           , runIf = Just (RunIfString "always() && env.PR_NUMBER != 0")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -827,11 +889,17 @@ Workflow
                        , with =
                            Just
                              (StepWithEnv
-                                (fromList
-                                   [ ( "fetch-depth" , "1" )
-                                   , ( "path" , "${{ env.GITHUB_WORKSPACE }}" )
-                                   , ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
-                                   ]))
+                                (UnstructuredMap
+                                   (fromList
+                                      [ ( "fetch-depth" , UnstructuredValueString "1" )
+                                      , ( "path"
+                                        , UnstructuredValueString "${{ env.GITHUB_WORKSPACE }}"
+                                        )
+                                      , ( "token"
+                                        , UnstructuredValueString
+                                            "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
+                                        )
+                                      ])))
                        , workingDirectory = Nothing
                        } :|
                        [ Step
@@ -861,7 +929,12 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList [ ( "bellroy-nix-cache-access" , "none" ) ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "bellroy-nix-cache-access"
+                                            , UnstructuredValueString "none"
+                                            )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -877,11 +950,15 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList
-                                       [ ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
-                                       , ( "tool-name" , "gitapult" )
-                                       , ( "tool-version" , "latest" )
-                                       ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "token"
+                                            , UnstructuredValueString
+                                                "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
+                                            )
+                                          , ( "tool-name" , UnstructuredValueString "gitapult" )
+                                          , ( "tool-version" , UnstructuredValueString "latest" )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -897,11 +974,15 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList
-                                       [ ( "token" , "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}" )
-                                       , ( "tool-name" , "powerful-owl" )
-                                       , ( "tool-version" , "latest" )
-                                       ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "token"
+                                            , UnstructuredValueString
+                                                "${{ secrets.BELLROY_DEPLOY_USER_TOKEN }}"
+                                            )
+                                          , ( "tool-name" , UnstructuredValueString "powerful-owl" )
+                                          , ( "tool-version" , UnstructuredValueString "latest" )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        , Step
@@ -968,7 +1049,7 @@ Workflow
                            , run =
                                Just
                                  "gh pr comment ${{ env.PR_NUMBER }} --body-file /tmp/pr-comment.txt || true"
-                           , runIf = Just "always() && env.PR_NUMBER != 0"
+                           , runIf = Just (RunIfString "always() && env.PR_NUMBER != 0")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -983,7 +1064,8 @@ Workflow
                            , run = Nothing
                            , runIf =
                                Just
-                                 "failure() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable')"
+                                 (RunIfString
+                                    "failure() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/stable')")
                            , shell = Nothing
                            , stepId = Nothing
                            , timeoutMinutes = Nothing
@@ -991,17 +1073,24 @@ Workflow
                            , with =
                                Just
                                  (StepWithEnv
-                                    (fromList
-                                       [ ( "branch"
-                                         , "${{ steps.checkout_branch.outputs.branch }}"
-                                         )
-                                       , ( "channel-id" , "${{ env.SLACK_CHANNEL_ID }}" )
-                                       , ( "message-type" , "build-fail" )
-                                       , ( "show-authors" , "true" )
-                                       , ( "slack-bot-token"
-                                         , "${{ secrets.BELLROY_SLACK_TOKEN }}"
-                                         )
-                                       ]))
+                                    (UnstructuredMap
+                                       (fromList
+                                          [ ( "branch"
+                                            , UnstructuredValueString
+                                                "${{ steps.checkout_branch.outputs.branch }}"
+                                            )
+                                          , ( "channel-id"
+                                            , UnstructuredValueString "${{ env.SLACK_CHANNEL_ID }}"
+                                            )
+                                          , ( "message-type"
+                                            , UnstructuredValueString "build-fail"
+                                            )
+                                          , ( "show-authors" , UnstructuredValueString "true" )
+                                          , ( "slack-bot-token"
+                                            , UnstructuredValueString
+                                                "${{ secrets.BELLROY_SLACK_TOKEN }}"
+                                            )
+                                          ])))
                            , workingDirectory = Nothing
                            }
                        ])
