@@ -1,6 +1,6 @@
 cabal-version:      2.2
 name:               github-actions
-version:            0.1.0.0
+version:            0.1.1.0
 synopsis:           Github Actions
 description:
   This library provides types and instances for serializing and deserializing
