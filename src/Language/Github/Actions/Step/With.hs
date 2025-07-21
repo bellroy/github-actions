@@ -30,7 +30,6 @@ where
 import Data.Aeson (FromJSON, ToJSON (..), (.:), (.:?), (.=))
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.KeyMap as AesonKeyMap
-import Data.Map (Map)
 import Data.Maybe (catMaybes)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -38,6 +37,8 @@ import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
+import Language.Github.Actions.UnstructuredMap (UnstructuredMap)
+import qualified Language.Github.Actions.UnstructuredMap as UnstructuredMap
 
 -- | Docker container arguments for Docker actions.
 --
@@ -95,14 +96,14 @@ data StepWith
   = -- | Docker action arguments
     StepWithDockerArgs StepWithDockerArgsAttrs
   | -- | Environment variables/general inputs
-    StepWithEnv (Map Text Text)
+    StepWithEnv UnstructuredMap
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON StepWith where
   parseJSON = Aeson.withObject "StepWith" $ \o ->
     let objectKeySet = Set.fromList (AesonKeyMap.keys o)
         dockerKeySet = Set.fromList ["entryPoint", "args"]
-     in if objectKeySet `Set.isSubsetOf` dockerKeySet
+     in if not (null objectKeySet) && objectKeySet `Set.isSubsetOf` dockerKeySet
           then do
             entryPoint <- o .: "entryPoint"
             args <- o .:? "args"
@@ -127,8 +128,7 @@ gen =
         entryPoint <- genText
         args <- Gen.maybe genText
         pure StepWithDockerArgsAttrs {..},
-      StepWithEnv <$> genTextMap
+      StepWithEnv <$> UnstructuredMap.gen
     ]
   where
     genText = Gen.text (Range.linear 1 5) Gen.alphaNum
-    genTextMap = Gen.map (Range.linear 1 5) $ liftA2 (,) genText genText

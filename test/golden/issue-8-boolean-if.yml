@@ -1,0 +1,14 @@
+name: Test Boolean If
+on:
+  push:
+    branches-ignore:
+      - "refs/tags/*_staging"
+      - "refs/tags/*_production"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test step
+        if: false
+        run: echo "test"

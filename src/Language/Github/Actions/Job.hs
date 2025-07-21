@@ -43,12 +43,14 @@ import Language.Github.Actions.Job.Container (JobContainer)
 import qualified Language.Github.Actions.Job.Container as JobContainer
 import Language.Github.Actions.Job.Environment (JobEnvironment)
 import qualified Language.Github.Actions.Job.Environment as JobEnvironment
-import Language.Github.Actions.Job.Id (JobId)
-import qualified Language.Github.Actions.Job.Id as JobId
 import Language.Github.Actions.Job.Strategy (JobStrategy)
 import qualified Language.Github.Actions.Job.Strategy as JobStrategy
+import Language.Github.Actions.JobNeeds (JobNeeds)
+import qualified Language.Github.Actions.JobNeeds as JobNeeds
 import Language.Github.Actions.Permissions (Permissions)
 import qualified Language.Github.Actions.Permissions as Permissions
+import Language.Github.Actions.RunIf (RunIf)
+import qualified Language.Github.Actions.RunIf as RunIf
 import Language.Github.Actions.Service (Service)
 import qualified Language.Github.Actions.Service as Service
 import Language.Github.Actions.Service.Id (ServiceId)
@@ -93,13 +95,13 @@ data Job = Job
     -- | Display name for the job
     jobName :: Maybe Text,
     -- | Jobs this job depends on
-    needs :: Maybe (NonEmpty JobId),
+    needs :: Maybe JobNeeds,
     -- | Outputs from this job
     outputs :: Map Text Text,
     -- | Permissions for this job
     permissions :: Maybe Permissions,
     -- | Condition for running this job
-    runIf :: Maybe Text,
+    runIf :: Maybe RunIf,
     -- | Runner type (e.g., "ubuntu-latest")
     runsOn :: Maybe Text,
     -- | Secrets available to this job
@@ -179,10 +181,10 @@ gen = do
   env <- genTextMap
   environment <- Gen.maybe JobEnvironment.gen
   jobName <- Gen.maybe genText
-  needs <- Gen.maybe (Gen.nonEmpty (Range.linear 1 5) JobId.gen)
+  needs <- Gen.maybe JobNeeds.gen
   outputs <- genTextMap
   permissions <- Gen.maybe Permissions.gen
-  runIf <- Gen.maybe genText
+  runIf <- Gen.maybe RunIf.gen
   runsOn <- Gen.maybe genText
   secrets <- genTextMap
   services <- Gen.map (Range.linear 1 5) $ liftA2 (,) ServiceId.gen Service.gen

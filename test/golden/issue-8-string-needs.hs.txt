@@ -1,0 +1,99 @@
+Workflow
+  { concurrency = Nothing
+  , defaults = Nothing
+  , env = fromList []
+  , jobs =
+      fromList
+        [ ( JobId "build"
+          , Job
+              { concurrency = Nothing
+              , container = Nothing
+              , continueOnError = Nothing
+              , defaults = Nothing
+              , env = fromList []
+              , environment = Nothing
+              , jobName = Nothing
+              , needs = Nothing
+              , outputs = fromList []
+              , permissions = Nothing
+              , runIf = Nothing
+              , runsOn = Just "ubuntu-latest"
+              , secrets = fromList []
+              , services = fromList []
+              , steps =
+                  Just
+                    (Step
+                       { continueOnError = False
+                       , env = fromList []
+                       , name = Nothing
+                       , run = Just "echo \"build\""
+                       , runIf = Nothing
+                       , shell = Nothing
+                       , stepId = Nothing
+                       , timeoutMinutes = Nothing
+                       , uses = Nothing
+                       , with = Nothing
+                       , workingDirectory = Nothing
+                       } :|
+                       [])
+              , strategy = Nothing
+              , timeoutMinutes = Nothing
+              , uses = Nothing
+              , with = fromList []
+              }
+          )
+        , ( JobId "test"
+          , Job
+              { concurrency = Nothing
+              , container = Nothing
+              , continueOnError = Nothing
+              , defaults = Nothing
+              , env = fromList []
+              , environment = Nothing
+              , jobName = Nothing
+              , needs = Just (JobNeedsString (JobId "build"))
+              , outputs = fromList []
+              , permissions = Nothing
+              , runIf = Nothing
+              , runsOn = Just "ubuntu-latest"
+              , secrets = fromList []
+              , services = fromList []
+              , steps =
+                  Just
+                    (Step
+                       { continueOnError = False
+                       , env = fromList []
+                       , name = Nothing
+                       , run = Just "echo \"test\""
+                       , runIf = Nothing
+                       , shell = Nothing
+                       , stepId = Nothing
+                       , timeoutMinutes = Nothing
+                       , uses = Nothing
+                       , with = Nothing
+                       , workingDirectory = Nothing
+                       } :|
+                       [])
+              , strategy = Nothing
+              , timeoutMinutes = Nothing
+              , uses = Nothing
+              , with = fromList []
+              }
+          )
+        ]
+  , on =
+      fromList
+        [ PushTrigger
+            PushTriggerAttributes
+              { branches = Nothing
+              , branchesIgnore =
+                  Just ("refs/tags/*_staging" :| [ "refs/tags/*_production" ])
+              , paths = Nothing
+              , pathsIgnore = Nothing
+              , tags = Nothing
+              }
+        ]
+  , permissions = Nothing
+  , runName = Nothing
+  , workflowName = Just "Test String Needs"
+  }
