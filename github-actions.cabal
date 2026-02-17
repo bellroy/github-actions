@@ -38,9 +38,9 @@ common opts
 common deps
   build-depends:
     , aeson               ^>=2.2.3.0
-    , base                >=4.14      && <4.22
+    , base                >=4.14      && <4.23
     , containers          ^>=0.6.7    || ^>=0.7   || ^>=0.8
-    , hedgehog            ^>=1.5
+    , hedgehog            ^>=1.5      || ^>=1.6   || ^>=1.7
     , hoist-error         ^>=0.3
     , string-interpolate  ^>=0.3.3
     , text                ^>=1.2.4.1  || ^>=2.0.2 || ^>=2.1.1
@@ -87,7 +87,7 @@ test-suite spec
     , github-actions
     , pretty-show         ^>=1.10
     , tasty               ^>=1.5
-    , tasty-discover      ^>=5.0.0
+    , tasty-discover      ^>=5.0.0    || ^>=5.1.0    || ^>=5.2.0
     , tasty-golden        ^>=2.3.5
     , tasty-golden-extra  ^>=0.1.0
     , tasty-hedgehog      ^>=1.4.0.0
