@@ -57,7 +57,7 @@ data Concurrency = Concurrency
   { -- | Concurrency group identifier
     group :: Maybe Text,
     -- | Whether to cancel in-progress runs
-    cancelInProgress :: Maybe Bool
+    cancelInProgress :: Maybe Text
   }
   deriving stock (Eq, Generic, Ord, Show)
 
