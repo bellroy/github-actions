@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
@@ -29,7 +28,7 @@ test_goldenWorkflowFromYaml = do
     testGroup
       "Yaml Roundtrip"
       [ runGoldenVsToYamlFileTest testYamlFilePath
-        | testYamlFilePath <- testYamlFiles
+      | testYamlFilePath <- testYamlFiles
       ]
   where
     runGoldenVsToYamlFileTest testYamlFilePath =
