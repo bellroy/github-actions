@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Version 0.2.0 (2025-07-21)
+
+- Changed `cancelInProgress` from `Maybe Bool` to `Maybe Text` to support GitHub Actions expressions
+
 ## Version 0.1.0 (2025-07-01)
 
 Released upon an unsuspecting world
