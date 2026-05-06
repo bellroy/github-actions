@@ -3,7 +3,7 @@ Workflow
       Just
         Concurrency
           { group = Just "${{ github.ref }}"
-          , cancelInProgress = Just False
+          , cancelInProgress = Just "false"
           }
   , defaults = Nothing
   , env = fromList [ ( "SYSTEM_NAME" , "Product Configuration" ) ]

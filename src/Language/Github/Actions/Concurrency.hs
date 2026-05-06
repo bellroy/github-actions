@@ -27,6 +27,7 @@ where
 
 import Data.Aeson (FromJSON, ToJSON (..), (.:?), (.=))
 import qualified Data.Aeson as Aeson
+import Data.Aeson.Types (Parser)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Hedgehog (MonadGen)
@@ -48,7 +49,7 @@ import qualified Hedgehog.Range as Range
 -- deploymentConcurrency :: Concurrency
 -- deploymentConcurrency = Concurrency
 --  { group = Just "${{ github.ref }}"
---  , cancelInProgress = Just True
+--  , cancelInProgress = Just "true"
 --  }
 -- @
 --
@@ -56,26 +57,36 @@ import qualified Hedgehog.Range as Range
 data Concurrency = Concurrency
   { -- | Concurrency group identifier
     group :: Maybe Text,
-    -- | Whether to cancel in-progress runs
-    cancelInProgress :: Maybe Bool
+    -- | Whether to cancel in-progress runs (can be "true", "false", or an expression)
+    cancelInProgress :: Maybe Text
   }
   deriving stock (Eq, Generic, Ord, Show)
 
 instance FromJSON Concurrency where
   parseJSON = Aeson.withObject "Concurrency" $ \o -> do
     group <- o .:? "group"
-    cancelInProgress <- o .:? "cancel-in-progress"
+    mVal <- o .:? "cancel-in-progress" :: Parser (Maybe Aeson.Value)
+    cancelInProgress <- case mVal of
+      Nothing -> pure Nothing
+      Just (Aeson.Bool True) -> pure (Just "true")
+      Just (Aeson.Bool False) -> pure (Just "false")
+      Just (Aeson.String s) -> pure (Just s)
+      Just _ -> fail "cancel-in-progress must be a boolean or string"
     pure Concurrency {..}
 
 instance ToJSON Concurrency where
   toJSON Concurrency {..} =
     Aeson.object
       [ "group" .= group,
-        "cancel-in-progress" .= cancelInProgress
+        "cancel-in-progress" .= fmap cancelInProgressToJSON cancelInProgress
       ]
+    where
+      cancelInProgressToJSON "true" = Aeson.Bool True
+      cancelInProgressToJSON "false" = Aeson.Bool False
+      cancelInProgressToJSON t = Aeson.String t
 
 gen :: (MonadGen m) => m Concurrency
 gen = do
   group <- Gen.maybe (Gen.text (Range.linear 1 5) Gen.alphaNum)
-  cancelInProgress <- Gen.maybe Gen.bool
+  cancelInProgress <- Gen.maybe (Gen.text (Range.linear 1 5) Gen.alphaNum)
   pure Concurrency {..}
