@@ -37,7 +37,7 @@ common opts
 
 common deps
   build-depends:
-    , aeson               ^>=2.2.3.0
+    , aeson               ^>=2.3.0.0
     , base                >=4.14      && <4.23
     , containers          ^>=0.6.7    || ^>=0.7   || ^>=0.8
     , hedgehog            ^>=1.5      || ^>=1.6   || ^>=1.7
