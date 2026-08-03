@@ -1,6 +1,6 @@
 cabal-version:      2.2
 name:               github-actions
-version:            0.2.0.0
+version:            0.3.0.0
 synopsis:           Github Actions
 description:
   This library provides types and instances for serializing and deserializing
@@ -60,6 +60,7 @@ library
     Language.Github.Actions.Job.Environment
     Language.Github.Actions.Job.Id
     Language.Github.Actions.Job.Needs
+    Language.Github.Actions.Job.RunsOn
     Language.Github.Actions.Job.Strategy
     Language.Github.Actions.Permissions
     Language.Github.Actions.RunIf

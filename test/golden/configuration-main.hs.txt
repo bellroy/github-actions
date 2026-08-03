@@ -22,7 +22,7 @@ Workflow
               , outputs = fromList []
               , permissions = Nothing
               , runIf = Nothing
-              , runsOn = Just "ubuntu-20.04"
+              , runsOn = Just (RunsOnString "ubuntu-20.04")
               , secrets = fromList []
               , services = fromList []
               , steps =
@@ -871,7 +871,7 @@ Workflow
               , outputs = fromList []
               , permissions = Nothing
               , runIf = Nothing
-              , runsOn = Just "ubuntu-20.04"
+              , runsOn = Just (RunsOnString "ubuntu-20.04")
               , secrets = fromList []
               , services = fromList []
               , steps =

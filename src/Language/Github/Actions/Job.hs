@@ -45,6 +45,8 @@ import Language.Github.Actions.Job.Environment (JobEnvironment)
 import qualified Language.Github.Actions.Job.Environment as JobEnvironment
 import Language.Github.Actions.Job.Needs (JobNeeds)
 import qualified Language.Github.Actions.Job.Needs as JobNeeds
+import Language.Github.Actions.Job.RunsOn (RunsOn)
+import qualified Language.Github.Actions.Job.RunsOn as RunsOn
 import Language.Github.Actions.Job.Strategy (JobStrategy)
 import qualified Language.Github.Actions.Job.Strategy as JobStrategy
 import Language.Github.Actions.Permissions (Permissions)
@@ -73,7 +75,7 @@ import qualified Language.Github.Actions.Step as Step
 -- myJob :: Job
 -- myJob = new
 --  { jobName = Just "Build and Test"
---  , runsOn = Just "ubuntu-latest"
+--  , runsOn = Just (RunsOn.RunsOnString "ubuntu-latest")
 --  , steps = Just $ Step.new :| []
 --  }
 -- @
@@ -102,8 +104,8 @@ data Job = Job
     permissions :: Maybe Permissions,
     -- | Condition for running this job
     runIf :: Maybe RunIf,
-    -- | Runner type (e.g., "ubuntu-latest")
-    runsOn :: Maybe Text,
+    -- | Runner type (e.g., "ubuntu-latest") or a list of runner labels
+    runsOn :: Maybe RunsOn,
     -- | Secrets available to this job
     secrets :: Map Text Text,
     -- | Services to run alongside this job
@@ -185,7 +187,7 @@ gen = do
   outputs <- genTextMap
   permissions <- Gen.maybe Permissions.gen
   runIf <- Gen.maybe RunIf.gen
-  runsOn <- Gen.maybe genText
+  runsOn <- Gen.maybe RunsOn.gen
   secrets <- genTextMap
   services <- Gen.map (Range.linear 1 5) $ liftA2 (,) ServiceId.gen Service.gen
   steps <- Gen.maybe (Gen.nonEmpty (Range.linear 1 20) Step.gen)
@@ -208,7 +210,7 @@ gen = do
 -- @
 -- buildJob = new
 --   { jobName = Just "Build"
---   , runsOn = Just "ubuntu-latest"
+--   , runsOn = Just (RunsOn.RunsOnString "ubuntu-latest")
 --   , steps = Just $ checkoutStep :| [buildStep]
 --   }
 -- @

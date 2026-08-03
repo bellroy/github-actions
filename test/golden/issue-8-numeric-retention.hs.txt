@@ -17,7 +17,7 @@ Workflow
               , outputs = fromList []
               , permissions = Nothing
               , runIf = Nothing
-              , runsOn = Just "ubuntu-latest"
+              , runsOn = Just (RunsOnString "ubuntu-latest")
               , secrets = fromList []
               , services = fromList []
               , steps =

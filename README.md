@@ -24,6 +24,7 @@ import Data.List.NonEmpty (NonEmpty(..))
 import Language.Github.Actions.Workflow
 import qualified Language.Github.Actions.Job as Job
 import qualified Language.Github.Actions.Job.Id as JobId
+import qualified Language.Github.Actions.Job.RunsOn as RunsOn
 import qualified Language.Github.Actions.Step as Step
 import qualified Language.Github.Actions.Workflow.Trigger as Trigger
 
@@ -38,7 +39,7 @@ myWorkflow = new
 buildJob :: Job.Job
 buildJob = Job.new
   { Job.jobName = Just "Build and Test"
-  , Job.runsOn = Just "ubuntu-latest"
+  , Job.runsOn = Just (RunsOn.RunsOnString "ubuntu-latest")
   , Job.steps = Just $ checkoutStep :| [buildStep, testStep]
   }
 

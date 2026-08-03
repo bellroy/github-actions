@@ -1,0 +1,18 @@
+jobs:
+  array-runner:
+    runs-on:
+    - self-hosted
+    - linux
+    - x64
+    steps:
+    - run: echo "array"
+  string-runner:
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo "string"
+name: Test RunsOn
+'on':
+  push:
+    branches-ignore:
+    - refs/tags/*_staging
+    - refs/tags/*_production

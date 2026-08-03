@@ -4,7 +4,46 @@ Workflow
   , env = fromList []
   , jobs =
       fromList
-        [ ( JobId "build"
+        [ ( JobId "array-runner"
+          , Job
+              { concurrency = Nothing
+              , container = Nothing
+              , continueOnError = Nothing
+              , defaults = Nothing
+              , env = fromList []
+              , environment = Nothing
+              , jobName = Nothing
+              , needs = Nothing
+              , outputs = fromList []
+              , permissions = Nothing
+              , runIf = Nothing
+              , runsOn =
+                  Just (RunsOnArray ("self-hosted" :| [ "linux" , "x64" ]))
+              , secrets = fromList []
+              , services = fromList []
+              , steps =
+                  Just
+                    (Step
+                       { continueOnError = False
+                       , env = fromList []
+                       , name = Nothing
+                       , run = Just "echo \"array\""
+                       , runIf = Nothing
+                       , shell = Nothing
+                       , stepId = Nothing
+                       , timeoutMinutes = Nothing
+                       , uses = Nothing
+                       , with = Nothing
+                       , workingDirectory = Nothing
+                       } :|
+                       [])
+              , strategy = Nothing
+              , timeoutMinutes = Nothing
+              , uses = Nothing
+              , with = fromList []
+              }
+          )
+        , ( JobId "string-runner"
           , Job
               { concurrency = Nothing
               , container = Nothing
@@ -26,45 +65,7 @@ Workflow
                        { continueOnError = False
                        , env = fromList []
                        , name = Nothing
-                       , run = Just "echo \"build\""
-                       , runIf = Nothing
-                       , shell = Nothing
-                       , stepId = Nothing
-                       , timeoutMinutes = Nothing
-                       , uses = Nothing
-                       , with = Nothing
-                       , workingDirectory = Nothing
-                       } :|
-                       [])
-              , strategy = Nothing
-              , timeoutMinutes = Nothing
-              , uses = Nothing
-              , with = fromList []
-              }
-          )
-        , ( JobId "test"
-          , Job
-              { concurrency = Nothing
-              , container = Nothing
-              , continueOnError = Nothing
-              , defaults = Nothing
-              , env = fromList []
-              , environment = Nothing
-              , jobName = Nothing
-              , needs = Just (JobNeedsString (JobId "build"))
-              , outputs = fromList []
-              , permissions = Nothing
-              , runIf = Nothing
-              , runsOn = Just (RunsOnString "ubuntu-latest")
-              , secrets = fromList []
-              , services = fromList []
-              , steps =
-                  Just
-                    (Step
-                       { continueOnError = False
-                       , env = fromList []
-                       , name = Nothing
-                       , run = Just "echo \"test\""
+                       , run = Just "echo \"string\""
                        , runIf = Nothing
                        , shell = Nothing
                        , stepId = Nothing
@@ -95,5 +96,5 @@ Workflow
         ]
   , permissions = Nothing
   , runName = Nothing
-  , workflowName = Just "Test String Needs"
+  , workflowName = Just "Test RunsOn"
   }
